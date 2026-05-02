@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الرئيسية | Taekwondo Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+        .sidebar { min-height: 100vh; }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- القائمة الجانبية -->
+    <aside class="sidebar w-64 bg-slate-900 text-white flex flex-col shadow-xl hidden md:flex">
+        <div class="p-6 border-b border-slate-700 text-center">
+            <h1 class="text-xl font-bold text-amber-500">Taekwondo Reg</h1>
+            <p class="text-sm text-slate-400 mt-1">نادي أبطال الأردن</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <!-- الزر النشط الآن هو الرئيسية -->
+            <a href="dashboard.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded shadow transition">
+                <i class="fas fa-home"></i> الرئيسية
+            </a>
+            <a href="add-player.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-user-plus"></i> تسجيل اللاعبين
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-list"></i> كشف النادي
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button class="w-full flex items-center gap-3 p-2 text-red-400 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        
+        <!-- الشريط العلوي -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">مرحباً كابتن، محمد أحمد 👋</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold text-slate-600">نادي أبطال الأردن</span>
+                <div class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600 shadow-inner">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- منطقة العمل -->
+        <div class="p-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- بطاقة البطولة الحالية (تأخذ مساحة عمودين) -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
+                    <div class="bg-slate-900 p-6 text-white">
+                        <span class="bg-amber-600 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">متاحة للتسجيل</span>
+                        <h3 class="text-2xl font-bold mt-3">بطولة المملكة المفتوحة 2026</h3>
+                        <p class="text-slate-300 mt-2 text-sm"><i class="fas fa-map-marker-alt text-amber-500 mr-1 ml-2"></i>صالة الأمير حمزة - مدينة الحسين للشباب</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <span class="block text-slate-500 text-sm font-semibold">تاريخ التوزين</span>
+                                <span class="block text-slate-800 font-bold mt-1 text-lg"><i class="far fa-calendar-alt text-amber-600 ml-2"></i>15 أيار 2026</span>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                                <span class="block text-slate-500 text-sm font-semibold">تاريخ البطولة</span>
+                                <span class="block text-slate-800 font-bold mt-1 text-lg"><i class="fas fa-trophy text-amber-600 ml-2"></i>16 - 17 أيار 2026</span>
+                            </div>
+                        </div>
+                        
+                        <!-- العداد التنازلي -->
+                        <div class="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg text-center">
+                            <span class="block text-red-600 text-sm font-bold mb-2">يُغلق باب التسجيل خلال:</span>
+                            <div class="flex justify-center gap-4 text-red-700 font-bold text-2xl" id="countdown">
+                                <!-- سيتم تعبئته بواسطة الجافاسكربت -->
+                            </div>
+                        </div>
+
+                        <a href="add-player.html" class="block w-full text-center bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-4 rounded shadow transition duration-300">
+                            تسجيل لاعبي النادي <i class="fas fa-arrow-left mr-2"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- بطاقة الملخص المالي والإحصائيات -->
+                <div class="space-y-6">
+                    
+                    <!-- الإحصائيات السريعة -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h4 class="text-slate-600 font-bold border-b pb-2 mb-4">إحصائيات النادي للبطولة</h4>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-slate-500">حزام ملون (مسجل)</span>
+                            <span class="bg-slate-100 text-slate-800 font-bold px-3 py-1 rounded">12 لاعب</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-slate-500">حزام أسود (مسجل)</span>
+                            <span class="bg-slate-900 text-white font-bold px-3 py-1 rounded">5 لاعبين</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
+                            <span class="text-slate-800 font-bold">الإجمالي</span>
+                            <span class="text-amber-600 font-bold text-xl">17</span>
+                        </div>
+                    </div>
+
+                    <!-- الملخص المالي -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-2 h-full bg-red-500" id="paymentStatusColor"></div>
+                        <h4 class="text-slate-600 font-bold border-b pb-2 mb-4"><i class="fas fa-file-invoice-dollar text-slate-400 ml-2"></i>الملخص المالي</h4>
+                        
+                        <div class="space-y-2 mb-4 text-sm">
+                            <div class="flex justify-between text-slate-500">
+                                <span>رسوم الملون (12 × 20 د.أ)</span>
+                                <span>240 د.أ</span>
+                            </div>
+                            <div class="flex justify-between text-slate-500">
+                                <span>رسوم الأسود (5 × 25 د.أ)</span>
+                                <span>125 د.أ</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-lg flex justify-between items-center border border-slate-200">
+                            <span class="text-slate-800 font-bold">المطلوب دفعه</span>
+                            <span class="text-2xl font-bold text-slate-900">365 <span class="text-sm text-slate-500">د.أ</span></span>
+                        </div>
+
+                        <!-- حالة الدفع -->
+                        <div class="mt-4 text-center p-2 rounded bg-red-100 text-red-700 font-bold text-sm" id="paymentStatusText">
+                            <i class="fas fa-times-circle ml-1"></i> الرسوم غير مدفوعة
+                        </div>
+                        <p class="text-xs text-slate-400 text-center mt-2">يتم تسديد الرسوم نقداً يوم التوزين لدى المنظمين.</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- سكربت العداد التنازلي -->
+    <script>
+        // تحديد تاريخ انتهاء التسجيل (مثال: 14 أيار 2026)
+        const countDownDate = new Date("May 14, 2026 23:59:59").getTime();
+
+        const x = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = countDownDate - now;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            // عرض العداد
+            document.getElementById("countdown").innerHTML = `
+                <div class="text-center"><span class="block text-3xl">${days}</span><span class="text-xs font-normal">أيام</span></div> :
+                <div class="text-center"><span class="block text-3xl">${hours}</span><span class="text-xs font-normal">ساعات</span></div> :
+                <div class="text-center"><span class="block text-3xl">${minutes}</span><span class="text-xs font-normal">دقائق</span></div> :
+                <div class="text-center"><span class="block text-3xl">${seconds}</span><span class="text-xs font-normal">ثواني</span></div>
+            `;
+
+            // إذا انتهى الوقت
+            if (distance < 0) {
+                clearInterval(x);
+                document.getElementById("countdown").innerHTML = "انتهى وقت التسجيل";
+                document.getElementById("countdown").classList.remove("text-red-700");
+                document.getElementById("countdown").classList.add("text-slate-500");
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

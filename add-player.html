@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة لاعب | Taekwondo Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+        .sidebar { min-height: 100vh; }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- القائمة الجانبية -->
+    <aside class="sidebar w-64 bg-slate-900 text-white flex flex-col shadow-xl hidden md:flex">
+        <div class="p-6 border-b border-slate-700 text-center">
+            <h1 class="text-xl font-bold text-amber-500">Taekwondo Reg</h1>
+            <p class="text-sm text-slate-400 mt-1">نادي أبطال الأردن</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-home"></i> الرئيسية
+            </a>
+            <a href="add-player.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded shadow transition">
+                <i class="fas fa-user-plus"></i> تسجيل اللاعبين
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-list"></i> كشف النادي
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-file-invoice-dollar"></i> المالية والرسوم
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button class="w-full flex items-center gap-3 p-2 text-red-400 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800">تسجيل اللاعبين - بطولة المملكة 2026</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold text-slate-600">الكابتن: محمد أحمد</span>
+                <div class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-8">
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
+                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4"><i class="fas fa-id-card text-amber-600 ml-2"></i>استمارة تسجيل لاعب جديد</h3>
+                
+                <form id="playerForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- تم إضافة id="playerName" هنا -->
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">اسم اللاعب (مقطعين)</label>
+                        <input type="text" id="playerName" class="w-full p-3 border border-slate-300 rounded focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition" placeholder="مثال: أحمد محمود" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">سنة الميلاد</label>
+                        <input type="text" id="birthYear" maxlength="4" class="w-full p-3 border border-slate-300 rounded focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition" placeholder="مثال: 2010">
+                        <p class="text-xs text-slate-400 mt-1">أدخل السنة كأرقام فقط</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">الفئة (تُحسب تلقائياً)</label>
+                        <input type="text" id="categoryField" class="w-full p-3 bg-slate-50 border border-slate-200 rounded text-slate-600 font-bold cursor-not-allowed" readonly>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">الجنس</label>
+                        <select id="gender" class="w-full p-3 border border-slate-300 rounded">
+                            <option value="">اختر الجنس...</option>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">الحزام</label>
+                        <select id="belt" class="w-full p-3 border border-slate-300 rounded">
+                            <option value="">اختر الحزام...</option>
+                            <option value="color">ملون</option>
+                            <option value="black">أسود</option>
+                        </select>
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">الوزن المعتمد</label>
+                        <select id="weight" class="w-full p-3 border border-slate-300 rounded bg-slate-50 disabled:opacity-50" disabled>
+                            <option value="">أدخل السنة والجنس أولاً لعرض الأوزان...</option>
+                        </select>
+                    </div>
+
+                    <!-- تم إضافة id="saveBtn" هنا -->
+                    <div class="col-span-2 mt-4">
+                        <button type="button" id="saveBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-4 rounded shadow-lg transition duration-300 flex justify-center items-center gap-2">
+                            <i class="fas fa-check-circle"></i> اعتماد وتسجيل اللاعب
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const weightsData = {
+            "kids_6_8": ["-18", "-20", "-22", "-24", "-26", "-29", "-32", "-35", "+35"],
+            "kids_9_11": ["-20", "-22", "-24", "-26", "-29", "-32", "-35", "-40", "-45", "+50"],
+            "cadets_male": ["-33", "-37", "-41", "-45", "-49", "-53", "-57", "-61", "-65", "+65"],
+            "cadets_female": ["-29", "-33", "-37", "-41", "-44", "-47", "-51", "-55", "-59", "+59"],
+            "juniors_male": ["-45", "-48", "-51", "-55", "-59", "-63", "-68", "-73", "-78", "+78"],
+            "juniors_female": ["-42", "-44", "-46", "-49", "-52", "-55", "-59", "-63", "-68", "+68"],
+            "seniors_male": ["-54", "-58", "-63", "-68", "-74", "-80", "-87", "+87"],
+            "seniors_female": ["-46", "-49", "-53", "-57", "-62", "-67", "-73", "+73"]
+        };
+
+        const yearInput = document.getElementById('birthYear');
+        const genderSelect = document.getElementById('gender');
+        const categoryField = document.getElementById('categoryField');
+        const weightSelect = document.getElementById('weight');
+        const saveBtn = document.getElementById('saveBtn');
+        const playerNameInput = document.getElementById('playerName');
+        const beltSelect = document.getElementById('belt');
+
+        function cleanInputAndCalculate() {
+            let cleanedValue = yearInput.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+            yearInput.value = cleanedValue;
+
+            if(cleanedValue.length !== 4 || !genderSelect.value) {
+                categoryField.value = "بانتظار إكمال البيانات...";
+                weightSelect.innerHTML = '<option value="">أدخل السنة والجنس أولاً...</option>';
+                weightSelect.disabled = true;
+                return;
+            }
+
+            const currentYear = 2026; 
+            const age = currentYear - parseInt(cleanedValue);
+            let categoryName = "";
+            let weightKey = "";
+
+            if (age >= 6 && age <= 8) { categoryName = "أطفال (6-8 سنوات)"; weightKey = "kids_6_8"; }
+            else if (age >= 9 && age <= 11) { categoryName = "أطفال (9-11 سنة)"; weightKey = "kids_9_11"; }
+            else if (age >= 12 && age <= 14) { categoryName = genderSelect.value === 'male' ? "أشبال (12-14 سنة)" : "زهرات (12-14 سنة)"; weightKey = genderSelect.value === 'male' ? "cadets_male" : "cadets_female"; }
+            else if (age >= 15 && age <= 17) { categoryName = genderSelect.value === 'male' ? "ناشئين (15-17 سنة)" : "ناشئات (15-17 سنة)"; weightKey = genderSelect.value === 'male' ? "juniors_male" : "juniors_female"; }
+            else if (age >= 18 && age <= 40) { categoryName = genderSelect.value === 'male' ? "رجال (+18)" : "سيدات (+18)"; weightKey = genderSelect.value === 'male' ? "seniors_male" : "seniors_female"; }
+            else { categoryName = "العمر غير مصنف"; weightKey = ""; }
+
+            categoryField.value = categoryName;
+
+            if (weightKey && weightsData[weightKey]) {
+                weightSelect.innerHTML = '<option value="">اختر الوزن...</option>';
+                weightsData[weightKey].forEach(weight => {
+                    const option = document.createElement('option');
+                    option.value = weight;
+                    option.textContent = weight + " كغم";
+                    weightSelect.appendChild(option);
+                });
+                weightSelect.disabled = false;
+                weightSelect.classList.remove('bg-slate-50', 'opacity-50');
+            }
+        }
+
+        yearInput.addEventListener('input', cleanInputAndCalculate);
+        genderSelect.addEventListener('change', cleanInputAndCalculate);
+
+        saveBtn.addEventListener('click', async () => {
+            if(!playerNameInput.value || !yearInput.value || !genderSelect.value || !beltSelect.value || !weightSelect.value) {
+                alert("الرجاء تعبئة جميع البيانات!");
+                return;
+            }
+
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التسجيل...';
+            saveBtn.disabled = true;
+
+            try {
+                await addDoc(collection(db, "players"), {
+                    name: playerNameInput.value,
+                    birthYear: parseInt(yearInput.value),
+                    gender: genderSelect.value,
+                    belt: beltSelect.value,
+                    category: categoryField.value,
+                    weight: weightSelect.value,
+                    captainId: "temp_captain_123",
+                    clubName: "نادي أبطال الأردن",
+                    createdAt: serverTimestamp()
+                });
+
+                alert("تم تسجيل اللاعب بنجاح!");
+                document.getElementById('playerForm').reset();
+                cleanInputAndCalculate();
+                
+            } catch (error) {
+                console.error(error);
+                alert("خطأ في الاتصال بالقاعدة!");
+            } finally {
+                saveBtn.innerHTML = '<i class="fas fa-check-circle"></i> اعتماد وتسجيل اللاعب';
+                saveBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

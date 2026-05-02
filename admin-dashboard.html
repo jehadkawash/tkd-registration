@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المنظم | Taekwondo Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+        .sidebar { min-height: 100vh; }
+        /* تصميم زر التبديل (Toggle Switch) */
+        .toggle-checkbox:checked { right: 0; border-color: #10B981; background-color: #10B981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10B981; }
+        .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
+        .toggle-label { width: 3.5rem; height: 1.75rem; background-color: #ef4444; border-radius: 9999px; transition: all 0.3s; }
+        .toggle-circle { top: 0.15rem; left: 0.15rem; width: 1.45rem; height: 1.45rem; background-color: white; border-radius: 50%; transition: all 0.3s; }
+        .toggle-checkbox:checked ~ .toggle-circle { transform: translateX(1.75rem); }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- القائمة الجانبية (السوبر أدمن) -->
+    <aside class="sidebar w-64 bg-slate-900 text-white flex flex-col shadow-xl hidden md:flex">
+        <div class="p-6 border-b border-slate-700 text-center">
+            <h1 class="text-xl font-bold text-amber-500">Taekwondo Reg</h1>
+            <p class="text-sm text-slate-400 mt-1">لوحة الإدارة (السوبر أدمن)</p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded shadow transition">
+                <i class="fas fa-chart-line"></i> لوحة القيادة
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-trophy"></i> إدارة البطولات
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition relative">
+                <i class="fas fa-users-cog"></i> طلبات الكباتن
+                <span class="absolute left-3 top-3 flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </span>
+            </a>
+            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-clipboard-list"></i> كشوفات القرعة
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button class="w-full flex items-center gap-3 p-2 text-red-400 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        
+        <!-- الشريط العلوي -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b-4 border-amber-500">
+            <h2 class="text-xl font-bold text-slate-800">إدارة بطولة المملكة المفتوحة 2026</h2>
+            <div class="flex items-center gap-3">
+                <span class="text-sm font-semibold text-slate-600">المنظم الرئيسي</span>
+                <div class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-amber-500 shadow-inner">
+                    <i class="fas fa-crown"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- منطقة العمل -->
+        <div class="p-8 space-y-6">
+            
+            <!-- الإحصائيات السريعة للمنظم (Cards) -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- بطاقة 1 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-blue-500 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-slate-500 font-bold mb-1">إجمالي اللاعبين</p>
+                        <h3 class="text-3xl font-bold text-slate-800">450</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <!-- بطاقة 2 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-emerald-500 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-slate-500 font-bold mb-1">الأندية المشاركة</p>
+                        <h3 class="text-3xl font-bold text-slate-800">32</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                </div>
+                <!-- بطاقة 3 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-amber-500 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-slate-500 font-bold mb-1">الإيرادات المتوقعة</p>
+                        <h3 class="text-3xl font-bold text-slate-800">9,250 <span class="text-sm">د.أ</span></h3>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+                <!-- بطاقة 4 -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500 flex justify-between items-center">
+                    <div>
+                        <p class="text-sm text-slate-500 font-bold mb-1">حالة التسجيل</p>
+                        <h3 class="text-xl font-bold text-red-600 mt-2">مفتوح (باقي 5 أيام)</h3>
+                    </div>
+                    <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-xl">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الجداول التفصيلية (قسمين) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- جدول استلام الرسوم (المالية) -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+                        <h4 class="font-bold text-slate-800"><i class="fas fa-cash-register text-slate-500 ml-2"></i>تحصيل الرسوم يوم التوزين</h4>
+                        <button class="text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded transition">طباعة الكشف</button>
+                    </div>
+                    <div class="p-0 overflow-x-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-slate-100 text-slate-600">
+                                <tr>
+                                    <th class="p-4 font-semibold">اسم النادي</th>
+                                    <th class="p-4 font-semibold">المبلغ المطلوب</th>
+                                    <th class="p-4 font-semibold text-center">حالة الدفع</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <!-- نادي دفع -->
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-4 font-bold text-slate-800">نادي أبطال الأردن</td>
+                                    <td class="p-4 font-bold text-amber-600">365 د.أ</td>
+                                    <td class="p-4 text-center">
+                                        <!-- زر تبديل (مدفوع) -->
+                                        <div class="relative inline-block w-14 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" name="toggle" id="toggle1" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                                            <label for="toggle1" class="toggle-label block overflow-hidden h-6 rounded-full bg-emerald-500 cursor-pointer"></label>
+                                            <div class="toggle-circle absolute block"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- نادي لم يدفع -->
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="p-4 font-bold text-slate-800">مركز الفرسان</td>
+                                    <td class="p-4 font-bold text-amber-600">120 د.أ</td>
+                                    <td class="p-4 text-center">
+                                        <!-- زر تبديل (غير مدفوع) -->
+                                        <div class="relative inline-block w-14 align-middle select-none transition duration-200 ease-in">
+                                            <input type="checkbox" name="toggle" id="toggle2" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                                            <label for="toggle2" class="toggle-label block overflow-hidden h-6 rounded-full bg-red-500 cursor-pointer"></label>
+                                            <div class="toggle-circle absolute block"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- جدول التصدير والقرعة -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="bg-slate-50 p-4 border-b border-slate-200">
+                        <h4 class="font-bold text-slate-800"><i class="fas fa-file-export text-slate-500 ml-2"></i>استخراج كشوفات القرعة (Export)</h4>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-slate-500 mb-4">استخرج قوائم اللاعبين مقسمة حسب الفئة، الوزن، والحزام لترتيب القرعة والمنازلات.</p>
+                        
+                        <form class="space-y-4">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">الفئة العمرية</label>
+                                    <select class="w-full p-2 border border-slate-300 rounded text-sm outline-none focus:border-amber-500">
+                                        <option>جميع الفئات</option>
+                                        <option>أشبال (12-14)</option>
+                                        <option>ناشئين (15-17)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">الحزام</label>
+                                    <select class="w-full p-2 border border-slate-300 rounded text-sm outline-none focus:border-amber-500">
+                                        <option>جميع الأحزمة</option>
+                                        <option>ملون</option>
+                                        <option>أسود</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-3 mt-6">
+                                <button type="button" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-file-excel"></i> تحميل Excel
+                                </button>
+                                <button type="button" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition flex items-center justify-center gap-2">
+                                    <i class="fas fa-file-pdf"></i> تحميل PDF
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

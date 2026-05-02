@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كشف النادي | Taekwondo Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+    </style>
+</head>
+<body class="flex">
+
+    <!-- القائمة الجانبية (نفس التصميم السابق) -->
+    <aside class="w-64 bg-slate-900 text-white min-h-screen flex flex-col hidden md:flex">
+        <div class="p-6 border-b border-slate-700 text-center">
+            <h1 class="text-xl font-bold text-amber-500">Taekwondo Reg</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-home"></i> الرئيسية
+            </a>
+            <a href="add-player.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+                <i class="fas fa-user-plus"></i> تسجيل اللاعبين
+            </a>
+            <a href="club-roster.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded shadow">
+                <i class="fas fa-list"></i> كشف النادي
+            </a>
+        </nav>
+    </aside>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b">
+            <h2 class="text-xl font-bold text-slate-800">قائمة لاعبي النادي المسجلين</h2>
+            <div id="financialSummary" class="flex gap-4">
+                <!-- سيتم تعبئة الخلاصة المالية هنا -->
+            </div>
+        </header>
+
+        <div class="p-8">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <table class="w-full text-right border-collapse">
+                    <thead class="bg-slate-50 text-slate-600 border-b">
+                        <tr>
+                            <th class="p-4 font-bold">اسم اللاعب</th>
+                            <th class="p-4 font-bold">الفئة</th>
+                            <th class="p-4 font-bold">الوزن</th>
+                            <th class="p-4 font-bold">الحزام</th>
+                            <th class="p-4 font-bold text-center">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playersTableBody" class="divide-y divide-slate-100">
+                        <!-- البيانات ستظهر هنا برمجياً -->
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-slate-400">جاري تحميل البيانات...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db } from './firebase-config.js';
+        import { collection, query, getDocs, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+        const tableBody = document.getElementById('playersTableBody');
+        const financialSummary = document.getElementById('financialSummary');
+
+        async function loadPlayers() {
+            try {
+                // جلب البيانات مرتبة حسب وقت الإضافة
+                const q = query(collection(db, "players"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                tableBody.innerHTML = ""; // مسح رسالة التحميل
+                let totalColor = 0;
+                let totalBlack = 0;
+
+                if (querySnapshot.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center">لا يوجد لاعبين مسجلين بعد.</td></tr>';
+                    return;
+                }
+
+                querySnapshot.forEach((res) => {
+                    const p = res.data();
+                    const pId = res.id;
+
+                    // حساب الرسوم (افتراضي: ملون 20، أسود 25)
+                    if(p.belt === "color") totalColor++; else totalBlack++;
+
+                    const row = `
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
+                            <td class="p-4 text-slate-600">${p.category}</td>
+                            <td class="p-4 font-bold text-amber-600">${p.weight} كغم</td>
+                            <td class="p-4">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold ${p.belt === 'black' ? 'bg-slate-900 text-white' : 'bg-blue-100 text-blue-700'}">
+                                    ${p.belt === 'black' ? 'أسود' : 'ملون'}
+                                </span>
+                            </td>
+                            <td class="p-4 text-center">
+                                <button onclick="deletePlayer('${pId}')" class="text-red-500 hover:text-red-700 transition">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+
+                // تحديث الملخص المالي
+                const totalFees = (totalColor * 20) + (totalBlack * 25);
+                financialSummary.innerHTML = `
+                    <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 text-sm">
+                        <span class="text-blue-600 font-bold">الإجمالي المالي:</span> 
+                        <span class="text-blue-800 font-black">${totalFees} د.أ</span>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Error loading players: ", error);
+            }
+        }
+
+        // دالة الحذف (سيتم ربطها بالنافذة العالمية لتشغيلها من الزر)
+        window.deletePlayer = async (id) => {
+            if(confirm("هل أنت متأكد من حذف هذا اللاعب؟")) {
+                await deleteDoc(doc(db, "players", id));
+                loadPlayers(); // إعادة تحميل الجدول
+            }
+        }
+
+        loadPlayers();
+    </script>
+</body>
+</html>
