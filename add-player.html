@@ -7,9 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
         .sidebar { min-height: 100vh; }
+        input:focus, select:focus { border-color: #d97706; box-shadow: 0 0 0 3px rgba(217,119,6,0.15); outline: none; }
     </style>
 </head>
 <body class="flex">
@@ -17,65 +18,83 @@
     <!-- القائمة الجانبية -->
     <aside class="sidebar w-64 bg-slate-900 text-white flex flex-col shadow-xl hidden md:flex">
         <div class="p-6 border-b border-slate-700 text-center">
-            <h1 class="text-xl font-bold text-amber-500">Taekwondo Reg</h1>
-            <p id="displayClubName" class="text-sm text-slate-400 mt-1">جاري التحميل...</p>
+            <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-fist-raised text-slate-900"></i>
+            </div>
+            <h1 class="text-lg font-black text-amber-500">Taekwondo Reg</h1>
+            <p id="displayClubName" class="text-xs text-slate-400 mt-1">جاري التحميل...</p>
         </div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
-                <i class="fas fa-home"></i> الرئيسية
+        <nav class="flex-1 p-4 space-y-1">
+            <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-home w-4"></i> الرئيسية
             </a>
-            <a href="add-player.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded shadow transition">
-                <i class="fas fa-user-plus"></i> تسجيل اللاعبين
+            <a href="add-player.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded-lg shadow transition text-sm">
+                <i class="fas fa-user-plus w-4"></i> تسجيل اللاعبين
             </a>
-            <a href="club-roster.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
-                <i class="fas fa-list"></i> كشف النادي
+            <a href="club-roster.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-list w-4"></i> كشف النادي
             </a>
         </nav>
         <div class="p-4 border-t border-slate-700">
-            <button id="logoutBtn" class="w-full flex items-center gap-3 p-2 text-red-400 hover:bg-slate-800 rounded transition font-bold">
+            <button id="logoutBtn" class="w-full flex items-center gap-2 p-2 text-red-400 hover:bg-slate-800 rounded-lg transition font-bold text-sm">
                 <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <!-- الشريط العلوي -->
-        <header class="bg-white shadow-sm p-4 flex justify-between items-center">
-            <h2 class="text-xl font-bold text-slate-800 text-sm md:text-xl">تسجيل اللاعبين - بطولة المملكة 2026</h2>
+    <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+            <h2 class="font-black text-slate-800 text-sm md:text-base">تسجيل اللاعبين</h2>
             <div class="flex items-center gap-3">
-                <span id="userEmailDisplay" class="text-xs md:text-sm font-semibold text-slate-600">تحقق من الحساب...</span>
+                <span id="userEmailDisplay" class="text-xs font-bold text-slate-500"></span>
                 <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
                     <i class="fas fa-user-shield"></i>
                 </div>
             </div>
         </header>
 
-        <!-- منطقة الاستمارة -->
-        <div class="p-4 md:p-8">
+        <div class="p-4 md:p-6">
+
+            <!-- اختيار البطولة -->
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+                <label class="block text-sm font-black text-amber-800 mb-2">
+                    <i class="fas fa-trophy ml-2"></i>البطولة المراد التسجيل فيها
+                </label>
+                <select id="tournamentSelect" class="w-full p-3 border border-amber-300 rounded-lg bg-white outline-none focus:border-amber-500">
+                    <option value="">جاري تحميل البطولات...</option>
+                </select>
+            </div>
+
             <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
-                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">
+                <h3 class="text-base font-black text-slate-800 mb-6 border-b pb-4">
                     <i class="fas fa-id-card text-amber-600 ml-2"></i>استمارة تسجيل لاعب جديد
                 </h3>
                 
-                <form id="playerForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form id="playerForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
                     <div class="col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">اسم اللاعب (مقطعين)</label>
-                        <input type="text" id="playerName" class="w-full p-3 border border-slate-300 rounded focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition" placeholder="مثال: أحمد محمود" required>
+                        <label class="block text-sm font-black text-slate-700 mb-2">اسم اللاعب (مقطعين)</label>
+                        <input type="text" id="playerName"
+                            class="w-full p-3 border border-slate-300 rounded-lg transition"
+                            placeholder="مثال: أحمد محمود" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">سنة الميلاد</label>
-                        <input type="text" id="birthYear" maxlength="4" class="w-full p-3 border border-slate-300 rounded focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition" placeholder="مثال: 2010">
+                        <label class="block text-sm font-black text-slate-700 mb-2">سنة الميلاد</label>
+                        <input type="text" id="birthYear" maxlength="4"
+                            class="w-full p-3 border border-slate-300 rounded-lg transition"
+                            placeholder="مثال: 2010">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">الفئة (تُحسب تلقائياً)</label>
-                        <input type="text" id="categoryField" class="w-full p-3 bg-slate-50 border border-slate-200 rounded text-slate-600 font-bold cursor-not-allowed" readonly>
+                        <label class="block text-sm font-black text-slate-700 mb-2">الفئة (تُحسب تلقائياً)</label>
+                        <input type="text" id="categoryField"
+                            class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 font-black cursor-not-allowed" readonly>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">الجنس</label>
-                        <select id="gender" class="w-full p-3 border border-slate-300 rounded outline-none focus:ring-1 focus:ring-amber-500">
+                        <label class="block text-sm font-black text-slate-700 mb-2">الجنس</label>
+                        <select id="gender" class="w-full p-3 border border-slate-300 rounded-lg transition">
                             <option value="">اختر الجنس...</option>
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
@@ -83,8 +102,8 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">الحزام</label>
-                        <select id="belt" class="w-full p-3 border border-slate-300 rounded outline-none focus:ring-1 focus:ring-amber-500">
+                        <label class="block text-sm font-black text-slate-700 mb-2">الحزام</label>
+                        <select id="belt" class="w-full p-3 border border-slate-300 rounded-lg transition">
                             <option value="">اختر الحزام...</option>
                             <option value="color">ملون</option>
                             <option value="black">أسود</option>
@@ -92,14 +111,23 @@
                     </div>
 
                     <div class="col-span-2">
-                        <label class="block text-sm font-bold text-slate-700 mb-2">الوزن المعتمد</label>
-                        <select id="weight" class="w-full p-3 border border-slate-300 rounded bg-slate-50 disabled:opacity-50 outline-none" disabled>
+                        <label class="block text-sm font-black text-slate-700 mb-2">الوزن المعتمد</label>
+                        <select id="weight" class="w-full p-3 border border-slate-300 rounded-lg bg-slate-50 outline-none" disabled>
                             <option value="">أدخل السنة والجنس أولاً...</option>
                         </select>
                     </div>
 
-                    <div class="col-span-2 mt-4">
-                        <button type="button" id="saveBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-4 rounded shadow-lg transition duration-300 flex justify-center items-center gap-2">
+                    <!-- معاينة الرسوم -->
+                    <div class="col-span-2" id="feePreview" style="display:none">
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex justify-between items-center">
+                            <span class="text-amber-800 font-black text-sm">رسوم تسجيل هذا اللاعب:</span>
+                            <span class="text-amber-700 font-black text-xl" id="feeAmount">- د.أ</span>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2">
+                        <button type="button" id="saveBtn"
+                            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-lg shadow-lg transition flex justify-center items-center gap-2">
                             <i class="fas fa-check-circle"></i> اعتماد وتسجيل اللاعب
                         </button>
                     </div>
@@ -110,20 +138,91 @@
 
     <script type="module">
         import { db, auth } from './firebase-config.js';
-        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { 
+            collection, addDoc, serverTimestamp, getDoc, doc, query, orderBy, getDocs
+        } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-        // --- 1. حماية الصفحة والتحقق من تسجيل الدخول ---
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                window.location.href = 'index.html';
-            } else {
-                document.getElementById('userEmailDisplay').innerText = user.email;
-                document.getElementById('displayClubName').innerText = user.email.split('@')[0].toUpperCase();
+        let currentUser = null;
+        let currentUserData = null;
+        let currentTournamentData = null;
+
+        // ====== التحقق من المستخدم ======
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "index.html"; return; }
+
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (!userSnap.exists() || !userSnap.data().approved) {
+                alert("بانتظار موافقة المنظم");
+                await signOut(auth);
+                window.location.href = "index.html";
+                return;
             }
+
+            currentUser = user;
+            currentUserData = userSnap.data();
+            document.getElementById('displayClubName').textContent = currentUserData.clubName || user.email;
+            document.getElementById('userEmailDisplay').textContent = user.email;
+
+            loadTournaments();
         });
 
-        // --- 2. منطق تسجيل الخروج ---
+        // ====== تحميل البطولات ======
+        async function loadTournaments() {
+            try {
+                const snap = await getDocs(query(collection(db, "tournaments"), orderBy("createdAt", "desc")));
+                const select = document.getElementById('tournamentSelect');
+                const now = new Date();
+
+                select.innerHTML = '<option value="">-- اختر البطولة --</option>';
+                let hasOpen = false;
+
+                // التحقق من URL parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlTid = urlParams.get('tid');
+
+                snap.forEach(d => {
+                    const t = d.data();
+                    const deadline = t.deadline ? new Date(t.deadline) : null;
+                    const isOpen = deadline && now < deadline;
+                    
+                    const option = document.createElement('option');
+                    option.value = d.id;
+                    option.textContent = `${t.name} ${isOpen ? '🟢 (مفتوح)' : '🔴 (مغلق)'}`;
+                    option.disabled = !isOpen;
+                    option.dataset.feeColor = t.feeColor || 20;
+                    option.dataset.feeBlack = t.feeBlack || 25;
+                    select.appendChild(option);
+
+                    if (urlTid === d.id) {
+                        select.value = d.id;
+                        currentTournamentData = t;
+                        currentTournamentData.id = d.id;
+                    }
+                    if (isOpen && !urlTid && !hasOpen) {
+                        select.value = d.id;
+                        currentTournamentData = t;
+                        currentTournamentData.id = d.id;
+                        hasOpen = true;
+                    }
+                });
+
+                if (snap.empty) {
+                    select.innerHTML = '<option value="">لا توجد بطولات متاحة حالياً</option>';
+                }
+
+                select.addEventListener('change', () => {
+                    const opt = select.options[select.selectedIndex];
+                    if (opt && opt.value) {
+                        currentTournamentData = { id: opt.value, feeColor: opt.dataset.feeColor, feeBlack: opt.dataset.feeBlack };
+                    }
+                    updateFeePreview();
+                });
+
+            } catch(e) { console.error(e); }
+        }
+
+        // ====== تسجيل الخروج ======
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             if (confirm("هل تريد تسجيل الخروج؟")) {
                 await signOut(auth);
@@ -131,97 +230,145 @@
             }
         });
 
-        // --- 3. منطق حساب الفئات والأوزان ---
+        // ====== بيانات الأوزان ======
         const weightsData = {
-            "kids_6_8": ["-18", "-20", "-22", "-24", "-26", "-29", "-32", "-35", "+35"],
-            "kids_9_11": ["-20", "-22", "-24", "-26", "-29", "-32", "-35", "-40", "-45", "+50"],
-            "cadets_male": ["-33", "-37", "-41", "-45", "-49", "-53", "-57", "-61", "-65", "+65"],
+            "kids_6_8":      ["-18", "-20", "-22", "-24", "-26", "-29", "-32", "-35", "+35"],
+            "kids_9_11":     ["-20", "-22", "-24", "-26", "-29", "-32", "-35", "-40", "-45", "+50"],
+            "cadets_male":   ["-33", "-37", "-41", "-45", "-49", "-53", "-57", "-61", "-65", "+65"],
             "cadets_female": ["-29", "-33", "-37", "-41", "-44", "-47", "-51", "-55", "-59", "+59"],
-            "juniors_male": ["-45", "-48", "-51", "-55", "-59", "-63", "-68", "-73", "-78", "+78"],
-            "juniors_female": ["-42", "-44", "-46", "-49", "-52", "-55", "-59", "-63", "-68", "+68"],
-            "seniors_male": ["-54", "-58", "-63", "-68", "-74", "-80", "-87", "+87"],
-            "seniors_female": ["-46", "-49", "-53", "-57", "-62", "-67", "-73", "+73"]
+            "juniors_male":  ["-45", "-48", "-51", "-55", "-59", "-63", "-68", "-73", "-78", "+78"],
+            "juniors_female":["-42", "-44", "-46", "-49", "-52", "-55", "-59", "-63", "-68", "+68"],
+            "seniors_male":  ["-54", "-58", "-63", "-68", "-74", "-80", "-87", "+87"],
+            "seniors_female":["-46", "-49", "-53", "-57", "-62", "-67", "-73", "+73"]
         };
 
-        const yearInput = document.getElementById('birthYear');
-        const genderSelect = document.getElementById('gender');
+        const yearInput     = document.getElementById('birthYear');
+        const genderSelect  = document.getElementById('gender');
         const categoryField = document.getElementById('categoryField');
-        const weightSelect = document.getElementById('weight');
-        const saveBtn = document.getElementById('saveBtn');
-        const playerNameInput = document.getElementById('playerName');
-        const beltSelect = document.getElementById('belt');
+        const weightSelect  = document.getElementById('weight');
+        const beltSelect    = document.getElementById('belt');
 
-        function cleanInputAndCalculate() {
-            let cleanedValue = yearInput.value.replace(/\s+/g, '').replace(/[^0-9]/g, '');
-            yearInput.value = cleanedValue;
+        function calculate() {
+            let val = yearInput.value.replace(/\D/g, '');
+            yearInput.value = val;
 
-            if(cleanedValue.length !== 4 || !genderSelect.value) {
+            if (val.length !== 4 || !genderSelect.value) {
                 categoryField.value = "بانتظار البيانات...";
                 weightSelect.innerHTML = '<option value="">أدخل السنة والجنس أولاً...</option>';
                 weightSelect.disabled = true;
+                hideFeePreview();
                 return;
             }
 
-            const currentYear = 2026; 
-            const age = currentYear - parseInt(cleanedValue);
-            let categoryName = "";
-            let weightKey = "";
+            const age = 2026 - parseInt(val);
+            let catName = "", weightKey = "";
 
-            if (age >= 6 && age <= 8) { categoryName = "أطفال (6-8 سنوات)"; weightKey = "kids_6_8"; }
-            else if (age >= 9 && age <= 11) { categoryName = "أطفال (9-11 سنة)"; weightKey = "kids_9_11"; }
-            else if (age >= 12 && age <= 14) { categoryName = genderSelect.value === 'male' ? "أشبال (12-14 سنة)" : "زهرات (12-14 سنة)"; weightKey = genderSelect.value === 'male' ? "cadets_male" : "cadets_female"; }
-            else if (age >= 15 && age <= 17) { categoryName = genderSelect.value === 'male' ? "ناشئين (15-17 سنة)" : "ناشئات (15-17 سنة)"; weightKey = genderSelect.value === 'male' ? "juniors_male" : "juniors_female"; }
-            else if (age >= 18 && age <= 40) { categoryName = genderSelect.value === 'male' ? "رجال (+18)" : "سيدات (+18)"; weightKey = genderSelect.value === 'male' ? "seniors_male" : "seniors_female"; }
-            else { categoryName = "غير مصنف"; weightKey = ""; }
+            if      (age >= 6  && age <= 8)  { catName = "أطفال (6-8 سنوات)"; weightKey = "kids_6_8"; }
+            else if (age >= 9  && age <= 11) { catName = "أطفال (9-11 سنة)";  weightKey = "kids_9_11"; }
+            else if (age >= 12 && age <= 14) {
+                catName    = genderSelect.value === 'male' ? "أشبال (12-14 سنة)" : "زهرات (12-14 سنة)";
+                weightKey  = genderSelect.value === 'male' ? "cadets_male" : "cadets_female";
+            }
+            else if (age >= 15 && age <= 17) {
+                catName    = genderSelect.value === 'male' ? "ناشئين (15-17 سنة)" : "ناشئات (15-17 سنة)";
+                weightKey  = genderSelect.value === 'male' ? "juniors_male" : "juniors_female";
+            }
+            else if (age >= 18 && age <= 40) {
+                catName    = genderSelect.value === 'male' ? "رجال (+18)" : "سيدات (+18)";
+                weightKey  = genderSelect.value === 'male' ? "seniors_male" : "seniors_female";
+            }
+            else { catName = "غير مصنف (خارج نطاق البطولة)"; weightKey = ""; }
 
-            categoryField.value = categoryName;
+            categoryField.value = catName;
 
             if (weightKey && weightsData[weightKey]) {
                 weightSelect.innerHTML = '<option value="">اختر الوزن...</option>';
-                weightsData[weightKey].forEach(weight => {
-                    const option = document.createElement('option');
-                    option.value = weight;
-                    option.textContent = weight + " كغم";
-                    weightSelect.appendChild(option);
+                weightsData[weightKey].forEach(w => {
+                    const o = document.createElement('option');
+                    o.value = w; o.textContent = w + " كغم";
+                    weightSelect.appendChild(o);
                 });
                 weightSelect.disabled = false;
                 weightSelect.classList.remove('bg-slate-50');
+            } else {
+                weightSelect.innerHTML = '<option value="">غير متاح لهذه الفئة</option>';
+                weightSelect.disabled = true;
             }
         }
 
-        yearInput.addEventListener('input', cleanInputAndCalculate);
-        genderSelect.addEventListener('change', cleanInputAndCalculate);
+        function updateFeePreview() {
+            if (!beltSelect.value || !currentTournamentData) { hideFeePreview(); return; }
+            const fee = beltSelect.value === 'black'
+                ? (currentTournamentData.feeBlack || 25)
+                : (currentTournamentData.feeColor || 20);
+            document.getElementById('feeAmount').textContent = fee + ' د.أ';
+            document.getElementById('feePreview').style.display = 'block';
+        }
 
-        // --- 4. إرسال البيانات لـ Firebase ---
-        saveBtn.addEventListener('click', async () => {
-            if(!playerNameInput.value || !yearInput.value || !genderSelect.value || !beltSelect.value || !weightSelect.value) {
+        function hideFeePreview() {
+            document.getElementById('feePreview').style.display = 'none';
+        }
+
+        yearInput.addEventListener('input', calculate);
+        genderSelect.addEventListener('change', calculate);
+        beltSelect.addEventListener('change', updateFeePreview);
+        weightSelect.addEventListener('change', updateFeePreview);
+
+        // ====== حفظ اللاعب ======
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const name     = document.getElementById('playerName').value.trim();
+            const year     = yearInput.value.trim();
+            const gender   = genderSelect.value;
+            const belt     = beltSelect.value;
+            const weight   = weightSelect.value;
+            const category = categoryField.value;
+            const tid      = document.getElementById('tournamentSelect').value;
+
+            if (!tid) { alert("الرجاء اختيار بطولة أولاً!"); return; }
+            if (!name || !year || !gender || !belt || !weight) {
                 alert("الرجاء تعبئة كافة الحقول!");
                 return;
             }
+            if (category.includes("غير مصنف") || category.includes("بانتظار")) {
+                alert("الفئة العمرية غير مدرجة في البطولة!");
+                return;
+            }
 
+            const saveBtn = document.getElementById('saveBtn');
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
             saveBtn.disabled = true;
 
             try {
+                const fee = belt === 'black'
+                    ? (currentTournamentData?.feeBlack || 25)
+                    : (currentTournamentData?.feeColor || 20);
+
                 await addDoc(collection(db, "players"), {
-                    name: playerNameInput.value,
-                    birthYear: parseInt(yearInput.value),
-                    gender: genderSelect.value,
-                    belt: beltSelect.value,
-                    category: categoryField.value,
-                    weight: weightSelect.value,
-                    captainId: auth.currentUser.uid, // ربط اللاعب بـ ID النادي الحقيقي
-                    captainEmail: auth.currentUser.email,
+                    name,
+                    birthYear: parseInt(year),
+                    gender,
+                    belt,
+                    category,
+                    weight,
+                    fee,
+                    paid: false,
+                    tournamentId: tid,
+                    captainId: currentUser.uid,
+                    captainEmail: currentUser.email,
+                    clubName: currentUserData.clubName || currentUser.email,
                     createdAt: serverTimestamp()
                 });
 
-                alert("تم تسجيل اللاعب بنجاح في قاعدة البيانات!");
+                alert("✅ تم تسجيل اللاعب بنجاح!");
                 document.getElementById('playerForm').reset();
-                cleanInputAndCalculate();
-                
-            } catch (error) {
-                console.error(error);
-                alert("حدث خطأ أثناء الاتصال بالسيرفر!");
+                categoryField.value = "";
+                weightSelect.innerHTML = '<option value="">أدخل السنة والجنس أولاً...</option>';
+                weightSelect.disabled = true;
+                hideFeePreview();
+
+            } catch (e) {
+                console.error(e);
+                alert("❌ حدث خطأ: " + e.message);
             } finally {
                 saveBtn.innerHTML = '<i class="fas fa-check-circle"></i> اعتماد وتسجيل اللاعب';
                 saveBtn.disabled = false;

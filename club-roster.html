@@ -7,8 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+        @media print {
+            aside, header, .no-print { display: none !important; }
+            body { background: white; }
+            table { width: 100%; }
+        }
     </style>
 </head>
 <body class="flex">
@@ -16,81 +21,117 @@
     <!-- القائمة الجانبية -->
     <aside class="w-64 bg-slate-900 text-white min-h-screen flex flex-col hidden md:flex shadow-xl">
         <div class="p-6 border-b border-slate-700 text-center">
-            <h1 class="text-xl font-bold text-amber-500">Taekwondo Reg</h1>
+            <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                <i class="fas fa-fist-raised text-slate-900"></i>
+            </div>
+            <h1 class="text-lg font-black text-amber-500">Taekwondo Reg</h1>
             <p id="displayClubName" class="text-xs text-slate-400 mt-1">جاري التحقق...</p>
         </div>
-        <nav class="flex-1 p-4 space-y-2">
-            <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
-                <i class="fas fa-home"></i> الرئيسية
+        <nav class="flex-1 p-4 space-y-1">
+            <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-home w-4"></i> الرئيسية
             </a>
-            <a href="add-player.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
-                <i class="fas fa-user-plus"></i> تسجيل اللاعبين
+            <a href="add-player.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-user-plus w-4"></i> تسجيل اللاعبين
             </a>
-            <a href="club-roster.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded shadow">
-                <i class="fas fa-list"></i> كشف النادي
+            <a href="club-roster.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded-lg shadow text-sm">
+                <i class="fas fa-list w-4"></i> كشف النادي
             </a>
         </nav>
         <div class="p-4 border-t border-slate-700">
-            <button id="logoutBtn" class="w-full flex items-center gap-3 p-2 text-red-400 hover:bg-slate-800 rounded transition font-bold">
+            <button id="logoutBtn" class="w-full flex items-center gap-2 p-2 text-red-400 hover:bg-slate-800 rounded-lg transition font-bold text-sm">
                 <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
             </button>
         </div>
     </aside>
 
     <!-- المحتوى الرئيسي -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
-        <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b">
+    <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b sticky top-0 z-10">
             <div>
-                <h2 class="text-xl font-bold text-slate-800">قائمة لاعبي النادي المسجلين</h2>
+                <h2 class="font-black text-slate-800">كشف لاعبي النادي</h2>
                 <p id="userEmailDisplay" class="text-xs text-slate-500"></p>
             </div>
-            <div id="financialSummary" class="flex gap-4">
-                <!-- سيتم تعبئة الخلاصة المالية هنا -->
+            <div class="flex gap-3 no-print">
+                <button onclick="window.print()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition text-sm">
+                    <i class="fas fa-print"></i> طباعة
+                </button>
+                <div id="financialSummary"></div>
             </div>
         </header>
 
-        <div class="p-4 md:p-8">
+        <div class="p-4 md:p-6">
+
+            <!-- فلتر البطولة -->
+            <div class="bg-white rounded-xl p-4 mb-4 border border-slate-200 shadow-sm no-print">
+                <label class="block text-sm font-black text-slate-700 mb-2">
+                    <i class="fas fa-filter text-amber-500 ml-2"></i>تصفية حسب البطولة
+                </label>
+                <select id="tournamentFilter" onchange="reloadPlayers()" class="w-full p-3 border border-slate-300 rounded-lg outline-none focus:border-amber-500 text-sm">
+                    <option value="">جميع البطولات</option>
+                </select>
+            </div>
+
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <table class="w-full text-right border-collapse">
-                    <thead class="bg-slate-50 text-slate-600 border-b text-sm md:text-base">
-                        <tr>
-                            <th class="p-4 font-bold">اسم اللاعب</th>
-                            <th class="p-4 font-bold">الفئة</th>
-                            <th class="p-4 font-bold">الوزن</th>
-                            <th class="p-4 font-bold">الحزام</th>
-                            <th class="p-4 font-bold text-center">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="playersTableBody" class="divide-y divide-slate-100 text-sm md:text-base">
-                        <tr>
-                            <td colspan="5" class="p-8 text-center text-slate-400">جاري تحميل بيانات ناديك...</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead class="bg-slate-50 text-slate-600 border-b text-xs md:text-sm">
+                            <tr>
+                                <th class="p-4 font-black">#</th>
+                                <th class="p-4 font-black">اسم اللاعب</th>
+                                <th class="p-4 font-black">الفئة</th>
+                                <th class="p-4 font-black">الوزن</th>
+                                <th class="p-4 font-black">الحزام</th>
+                                <th class="p-4 font-black">الرسوم</th>
+                                <th class="p-4 font-black text-center no-print">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody" class="divide-y divide-slate-100 text-xs md:text-sm">
+                            <tr>
+                                <td colspan="7" class="p-8 text-center text-slate-400">
+                                    <i class="fas fa-spinner fa-spin text-amber-500 text-2xl mb-2 block"></i>
+                                    جاري تحميل بيانات ناديك...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
 
     <script type="module">
         import { db, auth } from './firebase-config.js';
-        import { collection, query, where, getDocs, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { 
+            collection, query, where, getDocs, orderBy, deleteDoc, doc, getDoc
+        } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
         const tableBody = document.getElementById('playersTableBody');
-        const financialSummary = document.getElementById('financialSummary');
+        let currentUID = null;
 
-        // --- 1. حماية الصفحة وجلب البيانات بناءً على المستخدم ---
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                window.location.href = 'index.html';
-            } else {
-                document.getElementById('userEmailDisplay').innerText = user.email;
-                document.getElementById('displayClubName').innerText = user.email.split('@')[0].toUpperCase();
-                loadPlayers(user.uid); // جلب لاعبي هذا المستخدم فقط
+        // ====== التحقق من المستخدم ======
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = "index.html"; return; }
+
+            const userSnap = await getDoc(doc(db, "users", user.uid));
+            if (!userSnap.exists() || !userSnap.data().approved) {
+                alert("بانتظار موافقة المنظم");
+                await signOut(auth);
+                window.location.href = "index.html";
+                return;
             }
+
+            currentUID = user.uid;
+            const userData = userSnap.data();
+            document.getElementById('displayClubName').textContent = userData.clubName || user.email;
+            document.getElementById('userEmailDisplay').textContent = user.email;
+
+            loadTournamentFilter();
+            loadPlayers(user.uid, '');
         });
 
-        // --- 2. تسجيل الخروج ---
+        // ====== تسجيل الخروج ======
         document.getElementById('logoutBtn').addEventListener('click', async () => {
             if (confirm("هل تريد تسجيل الخروج؟")) {
                 await signOut(auth);
@@ -98,79 +139,134 @@
             }
         });
 
-        // --- 3. دالة جلب اللاعبين المحمية ---
-        async function loadPlayers(uid) {
+        // ====== تحميل فلتر البطولات ======
+        async function loadTournamentFilter() {
             try {
-                // فلترة البيانات: جلب اللاعبين الذين لديهم نفس ID الكابتن الحالي فقط
-                const q = query(
-                    collection(db, "players"), 
-                    where("captainId", "==", uid),
-                    orderBy("createdAt", "desc")
-                );
-                
-                const querySnapshot = await getDocs(q);
-                tableBody.innerHTML = "";
-                let totalColor = 0;
-                let totalBlack = 0;
+                const snap = await getDocs(collection(db, "tournaments"));
+                const select = document.getElementById('tournamentFilter');
+                snap.forEach(d => {
+                    const o = document.createElement('option');
+                    o.value = d.id;
+                    o.textContent = d.data().name;
+                    select.appendChild(o);
+                });
+            } catch(e) { console.error(e); }
+        }
 
-                if (querySnapshot.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500">لا يوجد لاعبين مسجلين لناديك بعد.</td></tr>';
-                    financialSummary.innerHTML = "";
+        // ====== إعادة تحميل ======
+        window.reloadPlayers = function() {
+            const tid = document.getElementById('tournamentFilter').value;
+            if (currentUID) loadPlayers(currentUID, tid);
+        };
+
+        // ====== تحميل اللاعبين ======
+        async function loadPlayers(uid, tournamentId) {
+            try {
+                let q;
+                if (tournamentId) {
+                    q = query(
+                        collection(db, "players"),
+                        where("captainId", "==", uid),
+                        where("tournamentId", "==", tournamentId),
+                        orderBy("createdAt", "desc")
+                    );
+                } else {
+                    q = query(
+                        collection(db, "players"),
+                        where("captainId", "==", uid),
+                        orderBy("createdAt", "desc")
+                    );
+                }
+
+                const snap = await getDocs(q);
+                tableBody.innerHTML = "";
+                let totalColor = 0, totalBlack = 0, totalColorFee = 0, totalBlackFee = 0;
+
+                if (snap.empty) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-500">لا يوجد لاعبون مسجلون بعد.</td></tr>';
+                    document.getElementById('financialSummary').innerHTML = '';
                     return;
                 }
 
-                querySnapshot.forEach((res) => {
+                let count = 0;
+                snap.forEach(res => {
                     const p = res.data();
                     const pId = res.id;
+                    count++;
 
-                    if(p.belt === "color") totalColor++; else totalBlack++;
+                    const fee = p.fee || (p.belt === 'black' ? 25 : 20);
+                    if (p.belt === "color") { totalColor++; totalColorFee += fee; }
+                    else { totalBlack++; totalBlackFee += fee; }
 
-                    const row = `
+                    tableBody.innerHTML += `
                         <tr class="hover:bg-slate-50 transition">
-                            <td class="p-4 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-4 text-xs md:text-sm text-slate-600">${p.category}</td>
-                            <td class="p-4 font-bold text-amber-600">${p.weight} كغم</td>
+                            <td class="p-4 text-slate-400 text-center">${count}</td>
+                            <td class="p-4 font-black text-slate-800">${p.name}</td>
+                            <td class="p-4 text-slate-600 text-xs">${p.category}</td>
+                            <td class="p-4 font-black text-amber-600">${p.weight} كغم</td>
                             <td class="p-4">
-                                <span class="px-3 py-1 rounded-full text-[10px] md:text-xs font-bold ${p.belt === 'black' ? 'bg-slate-900 text-white' : 'bg-blue-100 text-blue-700'}">
+                                <span class="px-3 py-1 rounded-full text-xs font-black ${p.belt === 'black' ? 'bg-slate-900 text-white' : 'bg-blue-100 text-blue-700'}">
                                     ${p.belt === 'black' ? 'أسود' : 'ملون'}
                                 </span>
                             </td>
-                            <td class="p-4 text-center">
-                                <button onclick="deletePlayer('${pId}')" class="text-red-500 hover:text-red-700 transition p-2">
+                            <td class="p-4 font-bold text-slate-700">${fee} د.أ</td>
+                            <td class="p-4 text-center no-print">
+                                <button onclick="deletePlayer('${pId}')" class="text-red-400 hover:text-red-600 transition p-2 hover:bg-red-50 rounded-lg" title="حذف">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </td>
                         </tr>
                     `;
-                    tableBody.innerHTML += row;
                 });
 
-                const totalFees = (totalColor * 20) + (totalBlack * 25);
-                financialSummary.innerHTML = `
-                    <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-100 text-xs md:text-sm">
-                        <span class="text-blue-600 font-bold">إجمالي الرسوم:</span> 
-                        <span class="text-blue-800 font-black">${totalFees} د.أ</span>
+                const totalFees = totalColorFee + totalBlackFee;
+
+                // إجمالي في الجدول
+                tableBody.innerHTML += `
+                    <tr class="bg-slate-50 font-black border-t-2 border-slate-300">
+                        <td class="p-4 text-center" colspan="2">
+                            <span class="text-slate-700">الإجمالي: ${count} لاعب</span>
+                        </td>
+                        <td class="p-4"></td>
+                        <td class="p-4"></td>
+                        <td class="p-4">
+                            <span class="text-blue-600 text-xs">${totalColor} ملون</span><br>
+                            <span class="text-slate-800 text-xs">${totalBlack} أسود</span>
+                        </td>
+                        <td class="p-4 text-amber-600 text-lg">${totalFees} د.أ</td>
+                        <td class="no-print"></td>
+                    </tr>
+                `;
+
+                document.getElementById('financialSummary').innerHTML = `
+                    <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 text-center">
+                        <p class="text-xs text-blue-500 font-bold">إجمالي الرسوم المطلوبة</p>
+                        <p class="text-blue-800 font-black text-lg">${totalFees} د.أ</p>
                     </div>
                 `;
 
             } catch (error) {
                 console.error("Error: ", error);
-                // ملاحظة: إذا ظهر خطأ "Index" في الكونسول، ستحتاج لضغط الرابط الذي يظهر لتفعيل الـ Index في Firebase
-                tableBody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">حدث خطأ أثناء جلب البيانات.</td></tr>';
-            }
-        }
-
-        // --- 4. دالة الحذف ---
-        window.deletePlayer = async (id) => {
-            if(confirm("هل أنت متأكد من حذف هذا اللاعب نهائياً؟")) {
-                try {
-                    await deleteDoc(doc(db, "players", id));
-                    location.reload(); // إعادة تحميل لرؤية الحسبة المالية الجديدة
-                } catch (e) {
-                    alert("لا تملك صلاحية الحذف!");
+                // إذا كانت المشكلة في الـ Index، الرابط سيظهر في الكونسول
+                if (error.message && error.message.includes('index')) {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-amber-600">⚠️ يحتاج النظام إلى إنشاء فهرس في Firebase. تحقق من الكونسول للرابط.</td></tr>';
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500">حدث خطأ أثناء جلب البيانات.</td></tr>';
                 }
             }
         }
+
+        // ====== حذف لاعب ======
+        window.deletePlayer = async (id) => {
+            if (confirm("هل أنت متأكد من حذف هذا اللاعب نهائياً؟")) {
+                try {
+                    await deleteDoc(doc(db, "players", id));
+                    window.reloadPlayers();
+                } catch (e) {
+                    alert("لا تملك صلاحية الحذف أو حدث خطأ!");
+                }
+            }
+        };
     </script>
 </body>
 </html>

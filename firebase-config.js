@@ -1,9 +1,8 @@
-// استدعاء مكاتب فايربيس للإصدار 10
+// firebase-config.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-// إعدادات مشروعك اللي نسختها
 const firebaseConfig = {
   apiKey: "AIzaSyC52D9vAQcVtmq4du9F8M2iDbmmzKI2Bpk",
   authDomain: "tkd-registration.firebaseapp.com",
@@ -13,9 +12,7 @@ const firebaseConfig = {
   appId: "1:396167495302:web:af62fc1b5029f5e0ff5b07"
 };
 
-// تشغيل فايربيس
 const app = initializeApp(firebaseConfig);
 
-// تصدير قاعدة البيانات ونظام الدخول عشان نستخدمهم في باقي الصفحات
 export const db = getFirestore(app);
 export const auth = getAuth(app);
