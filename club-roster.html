@@ -3,28 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف النادي | تسجيل البطولات والاعبينistration</title>
+    <title>كشف النادي | Taekwondo Registration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+        #mobileSidebar { transform: translateX(100%); transition: transform 0.3s ease; }
+        #mobileSidebar.open { transform: translateX(0); }
+        #sidebarOverlay { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        #sidebarOverlay.open { display: block; opacity: 1; }
         @media print {
             aside, header, .no-print { display: none !important; }
             body { background: white; }
-            table { width: 100%; }
         }
     </style>
 </head>
 <body class="flex">
 
-    <!-- القائمة الجانبية -->
-    <aside class="w-64 bg-slate-900 text-white min-h-screen flex flex-col hidden md:flex shadow-xl">
+    <!-- السايدبار ديسكتوب -->
+    <aside class="w-64 bg-slate-900 text-white min-h-screen flex-col hidden md:flex shadow-xl flex-shrink-0">
         <div class="p-6 border-b border-slate-700 text-center">
             <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center mx-auto mb-2">
                 <i class="fas fa-fist-raised text-slate-900"></i>
             </div>
-            <h1 class="text-lg font-black text-amber-500">تسجيل البطولات والاعبين</h1>
+            <h1 class="text-lg font-black text-amber-500">Taekwondo Reg</h1>
             <p id="displayClubName" class="text-xs text-slate-400 mt-1">جاري التحقق...</p>
         </div>
         <nav class="flex-1 p-4 space-y-1">
@@ -45,45 +48,86 @@
         </div>
     </aside>
 
+    <!-- خلفية السايدبار موبايل -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 md:hidden" onclick="closeSidebar()"></div>
+
+    <!-- السايدبار موبايل Drawer -->
+    <div id="mobileSidebar" class="fixed top-0 right-0 h-full w-72 bg-slate-900 text-white z-50 flex flex-col shadow-2xl md:hidden">
+        <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-black text-amber-500">Taekwondo Reg</h1>
+                <p id="mobileClubName" class="text-xs text-slate-400 mt-0.5">جاري التحقق...</p>
+            </div>
+            <button onclick="closeSidebar()" class="text-slate-400 hover:text-white p-2">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <nav class="flex-1 p-4 space-y-1">
+            <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-home w-4"></i> الرئيسية
+            </a>
+            <a href="add-player.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-user-plus w-4"></i> تسجيل اللاعبين
+            </a>
+            <a href="club-roster.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded-lg shadow text-sm">
+                <i class="fas fa-list w-4"></i> كشف النادي
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button id="mobileLogoutBtn" class="w-full flex items-center gap-2 p-2 text-red-400 hover:bg-slate-800 rounded-lg transition font-bold text-sm">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+
     <!-- المحتوى الرئيسي -->
     <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
-        <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b sticky top-0 z-10">
-            <div>
-                <h2 class="font-black text-slate-800">كشف لاعبي النادي</h2>
-                <p id="userEmailDisplay" class="text-xs text-slate-500"></p>
+
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b sticky top-0 z-30">
+            <div class="flex items-center gap-3">
+                <!-- زر الهامبرغر موبايل -->
+                <button onclick="openSidebar()" class="md:hidden text-slate-700 hover:text-amber-600 p-1">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h2 class="font-black text-slate-800 text-sm md:text-base">كشف لاعبي النادي</h2>
+                    <p id="userEmailDisplay" class="text-xs text-slate-500 hidden md:block"></p>
+                </div>
             </div>
-            <div class="flex gap-3 no-print">
-                <button onclick="window.print()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition text-sm">
-                    <i class="fas fa-print"></i> طباعة
+            <div class="flex items-center gap-2 no-print">
+                <button onclick="window.print()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-2 rounded-lg transition text-xs md:text-sm">
+                    <i class="fas fa-print"></i>
+                    <span class="hidden sm:inline">طباعة</span>
                 </button>
                 <div id="financialSummary"></div>
             </div>
         </header>
 
-        <div class="p-4 md:p-6">
+        <div class="p-3 md:p-6 space-y-4">
 
             <!-- فلتر البطولة -->
-            <div class="bg-white rounded-xl p-4 mb-4 border border-slate-200 shadow-sm no-print">
-                <label class="block text-sm font-black text-slate-700 mb-2">
-                    <i class="fas fa-filter text-amber-500 ml-2"></i>تصفية حسب البطولة
+            <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm no-print">
+                <label class="block text-xs font-black text-slate-700 mb-2">
+                    <i class="fas fa-filter text-amber-500 ml-1"></i>تصفية حسب البطولة
                 </label>
-                <select id="tournamentFilter" onchange="reloadPlayers()" class="w-full p-3 border border-slate-300 rounded-lg outline-none focus:border-amber-500 text-sm">
+                <select id="tournamentFilter" onchange="reloadPlayers()" class="w-full p-2.5 border border-slate-300 rounded-lg outline-none focus:border-amber-500 text-sm">
                     <option value="">جميع البطولات</option>
                 </select>
             </div>
 
+            <!-- الجدول -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right border-collapse">
-                        <thead class="bg-slate-50 text-slate-600 border-b text-xs md:text-sm">
+                    <table class="w-full text-right border-collapse min-w-[500px]">
+                        <thead class="bg-slate-50 text-slate-600 border-b text-xs">
                             <tr>
-                                <th class="p-4 font-black">#</th>
-                                <th class="p-4 font-black">اسم اللاعب</th>
-                                <th class="p-4 font-black">الفئة</th>
-                                <th class="p-4 font-black">الوزن</th>
-                                <th class="p-4 font-black">الحزام</th>
-                                <th class="p-4 font-black">الرسوم</th>
-                                <th class="p-4 font-black text-center no-print">إجراء</th>
+                                <th class="p-3 font-black text-center">#</th>
+                                <th class="p-3 font-black">اسم اللاعب</th>
+                                <th class="p-3 font-black">الفئة</th>
+                                <th class="p-3 font-black">الوزن</th>
+                                <th class="p-3 font-black">الحزام</th>
+                                <th class="p-3 font-black">الرسوم</th>
+                                <th class="p-3 font-black text-center no-print">حذف</th>
                             </tr>
                         </thead>
                         <tbody id="playersTableBody" class="divide-y divide-slate-100 text-xs md:text-sm">
@@ -97,20 +141,36 @@
                     </table>
                 </div>
             </div>
+
         </div>
     </main>
 
     <script type="module">
         import { db, auth } from './firebase-config.js';
-        import { 
-            collection, query, where, getDocs, orderBy, deleteDoc, doc, getDoc
+        import {
+            collection, query, where, getDocs,
+            deleteDoc, doc, getDoc
         } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
         const tableBody = document.getElementById('playersTableBody');
         let currentUID = null;
+        // نخزن كل اللاعبين هنا ونفلتر محلياً — بدون composite index
+        let allPlayerDocs = [];
 
-        // ====== التحقق من المستخدم ======
+        // ===== فتح/إغلاق السايدبار =====
+        window.openSidebar = function () {
+            document.getElementById('mobileSidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+        window.closeSidebar = function () {
+            document.getElementById('mobileSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        };
+
+        // ===== التحقق من المستخدم =====
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = "index.html"; return; }
 
@@ -124,22 +184,41 @@
 
             currentUID = user.uid;
             const userData = userSnap.data();
-            document.getElementById('displayClubName').textContent = userData.clubName || user.email;
+            const clubName = userData.clubName || user.email;
+
+            document.getElementById('displayClubName').textContent = clubName;
+            document.getElementById('mobileClubName').textContent = clubName;
             document.getElementById('userEmailDisplay').textContent = user.email;
 
-            loadTournamentFilter();
-            loadPlayers(user.uid, '');
+            // جلب اللاعبين بـ query بسيط (captainId فقط) — لا يحتاج index
+            await fetchAllPlayers(user.uid);
+            await loadTournamentFilter();
+            renderPlayers('');
         });
 
-        // ====== تسجيل الخروج ======
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            if (confirm("هل تريد تسجيل الخروج؟")) {
-                await signOut(auth);
-                window.location.href = 'index.html';
+        // ===== جلب كل لاعبي الكابتن مرة واحدة =====
+        async function fetchAllPlayers(uid) {
+            try {
+                const q = query(
+                    collection(db, "players"),
+                    where("captainId", "==", uid)
+                );
+                const snap = await getDocs(q);
+                allPlayerDocs = [];
+                snap.forEach(d => allPlayerDocs.push({ id: d.id, ...d.data() }));
+                // ترتيب محلي حسب التاريخ (الأحدث أولاً)
+                allPlayerDocs.sort((a, b) => {
+                    const ta = a.createdAt?.seconds || 0;
+                    const tb = b.createdAt?.seconds || 0;
+                    return tb - ta;
+                });
+            } catch (e) {
+                console.error("خطأ في جلب اللاعبين:", e);
+                tableBody.innerHTML = `<tr><td colspan="7" class="p-8 text-center text-red-500">❌ خطأ: ${e.message}</td></tr>`;
             }
-        });
+        }
 
-        // ====== تحميل فلتر البطولات ======
+        // ===== تحميل فلتر البطولات =====
         async function loadTournamentFilter() {
             try {
                 const snap = await getDocs(collection(db, "tournaments"));
@@ -150,123 +229,111 @@
                     o.textContent = d.data().name;
                     select.appendChild(o);
                 });
-            } catch(e) { console.error(e); }
+            } catch (e) { console.error(e); }
         }
 
-        // ====== إعادة تحميل ======
-        window.reloadPlayers = function() {
-            const tid = document.getElementById('tournamentFilter').value;
-            if (currentUID) loadPlayers(currentUID, tid);
+        // ===== إعادة رسم عند تغيير الفلتر =====
+        window.reloadPlayers = function () {
+            renderPlayers(document.getElementById('tournamentFilter').value);
         };
 
-        // ====== تحميل اللاعبين ======
-        async function loadPlayers(uid, tournamentId) {
-            try {
-                let q;
-                if (tournamentId) {
-                    q = query(
-                        collection(db, "players"),
-                        where("captainId", "==", uid),
-                        where("tournamentId", "==", tournamentId),
-                        orderBy("createdAt", "desc")
-                    );
-                } else {
-                    q = query(
-                        collection(db, "players"),
-                        where("captainId", "==", uid),
-                        orderBy("createdAt", "desc")
-                    );
-                }
+        // ===== رسم الجدول (فلترة محلية) =====
+        function renderPlayers(tournamentId) {
+            tableBody.innerHTML = '';
+            const filtered = tournamentId
+                ? allPlayerDocs.filter(p => p.tournamentId === tournamentId)
+                : allPlayerDocs;
 
-                const snap = await getDocs(q);
-                tableBody.innerHTML = "";
-                let totalColor = 0, totalBlack = 0, totalColorFee = 0, totalBlackFee = 0;
+            if (filtered.length === 0) {
+                tableBody.innerHTML = `
+                    <tr><td colspan="7" class="p-10 text-center">
+                        <i class="fas fa-users text-slate-200 text-4xl mb-3 block"></i>
+                        <p class="text-slate-500 font-bold">لا يوجد لاعبون مسجلون بعد.</p>
+                        <a href="add-player.html" class="inline-block mt-3 bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-amber-700 transition">
+                            + سجّل لاعبك الأول
+                        </a>
+                    </td></tr>`;
+                document.getElementById('financialSummary').innerHTML = '';
+                return;
+            }
 
-                if (snap.empty) {
-                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-500">لا يوجد لاعبون مسجلون بعد.</td></tr>';
-                    document.getElementById('financialSummary').innerHTML = '';
-                    return;
-                }
+            let totalColor = 0, totalBlack = 0, totalColorFee = 0, totalBlackFee = 0;
 
-                let count = 0;
-                snap.forEach(res => {
-                    const p = res.data();
-                    const pId = res.id;
-                    count++;
+            filtered.forEach((p, idx) => {
+                const fee = p.fee || (p.belt === 'black' ? 25 : 20);
+                if (p.belt === 'black') { totalBlack++; totalBlackFee += fee; }
+                else                    { totalColor++; totalColorFee += fee; }
 
-                    const fee = p.fee || (p.belt === 'black' ? 25 : 20);
-                    if (p.belt === "color") { totalColor++; totalColorFee += fee; }
-                    else { totalBlack++; totalBlackFee += fee; }
+                const beltBadge = p.belt === 'black'
+                    ? '<span class="px-2 py-1 rounded-full bg-slate-900 text-white text-[10px] font-black">أسود</span>'
+                    : '<span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black">ملون</span>';
 
-                    tableBody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="p-4 text-slate-400 text-center">${count}</td>
-                            <td class="p-4 font-black text-slate-800">${p.name}</td>
-                            <td class="p-4 text-slate-600 text-xs">${p.category}</td>
-                            <td class="p-4 font-black text-amber-600">${p.weight} كغم</td>
-                            <td class="p-4">
-                                <span class="px-3 py-1 rounded-full text-xs font-black ${p.belt === 'black' ? 'bg-slate-900 text-white' : 'bg-blue-100 text-blue-700'}">
-                                    ${p.belt === 'black' ? 'أسود' : 'ملون'}
-                                </span>
-                            </td>
-                            <td class="p-4 font-bold text-slate-700">${fee} د.أ</td>
-                            <td class="p-4 text-center no-print">
-                                <button onclick="deletePlayer('${pId}')" class="text-red-400 hover:text-red-600 transition p-2 hover:bg-red-50 rounded-lg" title="حذف">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
+                const genderIcon = p.gender === 'male'
+                    ? '<i class="fas fa-mars text-blue-400 ml-1 text-[10px]"></i>'
+                    : '<i class="fas fa-venus text-pink-400 ml-1 text-[10px]"></i>';
 
-                const totalFees = totalColorFee + totalBlackFee;
-
-                // إجمالي في الجدول
                 tableBody.innerHTML += `
-                    <tr class="bg-slate-50 font-black border-t-2 border-slate-300">
-                        <td class="p-4 text-center" colspan="2">
-                            <span class="text-slate-700">الإجمالي: ${count} لاعب</span>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 text-slate-400 text-center text-xs">${idx + 1}</td>
+                        <td class="p-3 font-black text-slate-800">${genderIcon}${p.name}</td>
+                        <td class="p-3 text-slate-500 text-xs leading-tight">${p.category}</td>
+                        <td class="p-3 font-black text-amber-600">${p.weight}<span class="text-xs font-normal text-slate-400"> كغم</span></td>
+                        <td class="p-3">${beltBadge}</td>
+                        <td class="p-3 font-bold text-slate-700 text-xs">${fee} <span class="text-slate-400">د.أ</span></td>
+                        <td class="p-3 text-center no-print">
+                            <button onclick="deletePlayer('${p.id}')"
+                                class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition"
+                                title="حذف اللاعب">
+                                <i class="fas fa-trash-alt text-xs"></i>
+                            </button>
                         </td>
-                        <td class="p-4"></td>
-                        <td class="p-4"></td>
-                        <td class="p-4">
-                            <span class="text-blue-600 text-xs">${totalColor} ملون</span><br>
-                            <span class="text-slate-800 text-xs">${totalBlack} أسود</span>
-                        </td>
-                        <td class="p-4 text-amber-600 text-lg">${totalFees} د.أ</td>
-                        <td class="no-print"></td>
-                    </tr>
-                `;
+                    </tr>`;
+            });
 
-                document.getElementById('financialSummary').innerHTML = `
-                    <div class="bg-blue-50 px-4 py-2 rounded-lg border border-blue-200 text-center">
-                        <p class="text-xs text-blue-500 font-bold">إجمالي الرسوم المطلوبة</p>
-                        <p class="text-blue-800 font-black text-lg">${totalFees} د.أ</p>
-                    </div>
-                `;
+            const totalFees = totalColorFee + totalBlackFee;
+            tableBody.innerHTML += `
+                <tr class="bg-amber-50 border-t-2 border-amber-200">
+                    <td colspan="2" class="p-3 font-black text-slate-700 text-xs text-center">
+                        إجمالي: ${filtered.length} لاعب
+                    </td>
+                    <td class="p-3"></td>
+                    <td class="p-3"></td>
+                    <td class="p-3 text-xs">
+                        <span class="text-blue-600 block">${totalColor} ملون</span>
+                        <span class="text-slate-700 block">${totalBlack} أسود</span>
+                    </td>
+                    <td class="p-3 font-black text-amber-600 text-sm">${totalFees} <span class="text-xs">د.أ</span></td>
+                    <td class="no-print"></td>
+                </tr>`;
 
-            } catch (error) {
-                console.error("Error: ", error);
-                // إذا كانت المشكلة في الـ Index، الرابط سيظهر في الكونسول
-                if (error.message && error.message.includes('index')) {
-                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-amber-600">⚠️ يحتاج النظام إلى إنشاء فهرس في Firebase. تحقق من الكونسول للرابط.</td></tr>';
-                } else {
-                    tableBody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500">حدث خطأ أثناء جلب البيانات.</td></tr>';
-                }
-            }
+            document.getElementById('financialSummary').innerHTML = `
+                <div class="bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 text-center">
+                    <p class="text-[10px] text-amber-600 font-bold">إجمالي الرسوم</p>
+                    <p class="text-amber-800 font-black text-sm">${totalFees} د.أ</p>
+                </div>`;
         }
 
-        // ====== حذف لاعب ======
+        // ===== حذف لاعب =====
         window.deletePlayer = async (id) => {
-            if (confirm("هل أنت متأكد من حذف هذا اللاعب نهائياً؟")) {
-                try {
-                    await deleteDoc(doc(db, "players", id));
-                    window.reloadPlayers();
-                } catch (e) {
-                    alert("لا تملك صلاحية الحذف أو حدث خطأ!");
-                }
+            if (!confirm("هل أنت متأكد من حذف هذا اللاعب نهائياً؟")) return;
+            try {
+                await deleteDoc(doc(db, "players", id));
+                allPlayerDocs = allPlayerDocs.filter(p => p.id !== id);
+                renderPlayers(document.getElementById('tournamentFilter').value);
+            } catch (e) {
+                alert("❌ لا تملك صلاحية الحذف أو حدث خطأ!");
             }
         };
+
+        // ===== تسجيل الخروج =====
+        async function doLogout() {
+            if (confirm("هل تريد تسجيل الخروج؟")) {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            }
+        }
+        document.getElementById('logoutBtn').addEventListener('click', doLogout);
+        document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
     </script>
 </body>
 </html>

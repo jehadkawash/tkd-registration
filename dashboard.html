@@ -3,24 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الرئيسية | تسجيل البطولات والاعبينistration</title>
+    <title>الرئيسية | Taekwondo Registration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
-        .sidebar { min-height: 100vh; }
+        #mobileSidebar { transform: translateX(100%); transition: transform 0.3s ease; }
+        #mobileSidebar.open { transform: translateX(0); }
+        #sidebarOverlay { display: none; opacity: 0; transition: opacity 0.3s ease; }
+        #sidebarOverlay.open { display: block; opacity: 1; }
     </style>
 </head>
 <body class="flex">
 
-    <!-- القائمة الجانبية -->
-    <aside class="sidebar w-64 bg-slate-900 text-white flex flex-col shadow-xl hidden md:flex">
+    <!-- السايدبار ديسكتوب -->
+    <aside class="w-64 bg-slate-900 text-white min-h-screen flex-col hidden md:flex shadow-xl flex-shrink-0">
         <div class="p-6 border-b border-slate-700 text-center">
             <div class="w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center mx-auto mb-2">
                 <i class="fas fa-fist-raised text-slate-900"></i>
             </div>
-            <h1 class="text-lg font-black text-amber-500">تسجيل البطولات والاعبين</h1>
+            <h1 class="text-lg font-black text-amber-500">Taekwondo Reg</h1>
             <p id="displayClubName" class="text-xs text-slate-400 mt-1">جاري التحميل...</p>
         </div>
         <nav class="flex-1 p-4 space-y-1">
@@ -41,75 +44,110 @@
         </div>
     </aside>
 
+    <!-- خلفية موبايل -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 md:hidden" onclick="closeSidebar()"></div>
+
+    <!-- السايدبار موبايل -->
+    <div id="mobileSidebar" class="fixed top-0 right-0 h-full w-72 bg-slate-900 text-white z-50 flex flex-col shadow-2xl md:hidden">
+        <div class="p-5 border-b border-slate-700 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg font-black text-amber-500">Taekwondo Reg</h1>
+                <p id="mobileClubName" class="text-xs text-slate-400 mt-0.5">جاري التحميل...</p>
+            </div>
+            <button onclick="closeSidebar()" class="text-slate-400 hover:text-white p-2">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        <nav class="flex-1 p-4 space-y-1">
+            <a href="dashboard.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded-lg shadow transition text-sm">
+                <i class="fas fa-home w-4"></i> الرئيسية
+            </a>
+            <a href="add-player.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-user-plus w-4"></i> تسجيل اللاعبين
+            </a>
+            <a href="club-roster.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
+                <i class="fas fa-list w-4"></i> كشف النادي
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button id="mobileLogoutBtn" class="w-full flex items-center gap-2 p-2 text-red-400 hover:bg-slate-800 rounded-lg transition font-bold text-sm">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </div>
+    </div>
+
     <!-- المحتوى الرئيسي -->
     <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
-        
-        <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
-            <div>
-                <h2 class="font-black text-slate-800" id="welcomeMsg">مرحباً 👋</h2>
-                <p class="text-xs text-slate-500" id="userEmailDisplay"></p>
+
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-30">
+            <div class="flex items-center gap-3">
+                <button onclick="openSidebar()" class="md:hidden text-slate-700 hover:text-amber-600 p-1">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h2 class="font-black text-slate-800 text-sm md:text-base" id="welcomeMsg">مرحباً 👋</h2>
+                    <p class="text-xs text-slate-500 hidden md:block" id="userEmailDisplay"></p>
+                </div>
             </div>
-            <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 shadow-inner">
-                <i class="fas fa-user"></i>
+            <div class="w-9 h-9 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                <i class="fas fa-user text-sm"></i>
             </div>
         </header>
 
-        <div class="p-4 md:p-6 space-y-6">
-            
-            <!-- البطولات المتاحة -->
+        <div class="p-3 md:p-6 space-y-5">
+
+            <!-- البطولات -->
             <div>
-                <h3 class="font-black text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fas fa-trophy text-amber-500"></i> البطولات المتاحة للتسجيل
+                <h3 class="font-black text-slate-700 mb-3 text-sm flex items-center gap-2">
+                    <i class="fas fa-trophy text-amber-500"></i> البطولات المتاحة
                 </h3>
                 <div id="tournamentsSection">
-                    <div class="bg-white rounded-xl p-6 text-center text-slate-400 border border-slate-200">
-                        <i class="fas fa-spinner fa-spin text-amber-500 text-2xl mb-2"></i>
-                        <p>جاري تحميل البطولات...</p>
+                    <div class="bg-white rounded-xl p-6 text-center border border-slate-200">
+                        <i class="fas fa-spinner fa-spin text-amber-500 text-xl mb-2 block"></i>
+                        <p class="text-slate-400 text-sm">جاري تحميل البطولات...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- إحصائيات النادي -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                <!-- الإحصائيات -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h4 class="font-black text-slate-700 border-b pb-3 mb-4">
+            <!-- الإحصائيات والمالية -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h4 class="font-black text-slate-700 border-b pb-3 mb-4 text-sm">
                         <i class="fas fa-chart-bar text-amber-500 ml-2"></i>إحصائيات ناديك
                     </h4>
                     <div class="space-y-3">
                         <div class="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                             <span class="text-slate-600 text-sm font-bold">حزام ملون</span>
-                            <span class="bg-blue-200 text-blue-800 font-black px-3 py-1 rounded-lg text-sm" id="colorCount">-</span>
+                            <span class="bg-blue-600 text-white font-black px-3 py-1 rounded-lg text-sm" id="colorCount">-</span>
                         </div>
                         <div class="flex justify-between items-center p-3 bg-slate-100 rounded-lg">
                             <span class="text-slate-600 text-sm font-bold">حزام أسود</span>
-                            <span class="bg-slate-800 text-white font-black px-3 py-1 rounded-lg text-sm" id="blackCount">-</span>
+                            <span class="bg-slate-900 text-white font-black px-3 py-1 rounded-lg text-sm" id="blackCount">-</span>
                         </div>
-                        <div class="flex justify-between items-center p-4 bg-amber-50 rounded-lg border border-amber-100 mt-4">
-                            <span class="text-slate-800 font-black">إجمالي اللاعبين</span>
+                        <div class="flex justify-between items-center p-4 bg-amber-50 rounded-lg border border-amber-100">
+                            <span class="text-slate-800 font-black text-sm">الإجمالي</span>
                             <span class="text-amber-600 font-black text-2xl" id="totalCount">-</span>
                         </div>
                     </div>
+                    <a href="add-player.html" class="mt-4 flex items-center justify-center gap-2 w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-2.5 rounded-lg transition text-sm">
+                        <i class="fas fa-user-plus"></i> إضافة لاعب جديد
+                    </a>
                 </div>
 
-                <!-- الملخص المالي -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-1.5 h-full" id="paymentBar" style="background:#ef4444"></div>
-                    <h4 class="font-black text-slate-700 border-b pb-3 mb-4">
+                    <h4 class="font-black text-slate-700 border-b pb-3 mb-4 text-sm">
                         <i class="fas fa-file-invoice-dollar text-amber-500 ml-2"></i>الملخص المالي
                     </h4>
-                    
-                    <div class="space-y-2 mb-4 text-sm" id="feeBreakdown">
+                    <div class="space-y-2 mb-4 text-xs" id="feeBreakdown">
                         <p class="text-slate-400 text-center py-2">جاري الحساب...</p>
                     </div>
-
                     <div class="bg-slate-50 p-4 rounded-xl flex justify-between items-center border border-slate-200">
-                        <span class="text-slate-800 font-black">المطلوب دفعه</span>
+                        <span class="text-slate-800 font-black text-sm">المطلوب دفعه</span>
                         <span class="text-2xl font-black text-slate-900" id="totalFees">-</span>
                     </div>
-
-                    <div class="mt-4 text-center p-3 rounded-lg font-black text-sm" id="paymentStatus">
+                    <div class="mt-3 text-center p-3 rounded-lg font-black text-sm" id="paymentStatus">
                         <i class="fas fa-spinner fa-spin ml-1"></i> جاري التحقق...
                     </div>
                     <p class="text-xs text-slate-400 text-center mt-2">
@@ -122,18 +160,24 @@
 
     <script type="module">
         import { db, auth } from './firebase-config.js';
-        import { 
-            collection, query, where, getDocs, getDoc, doc, orderBy 
+        import {
+            collection, query, where, getDocs, getDoc, doc, orderBy
         } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-        let currentUser = null;
-        let userData = null;
+        window.openSidebar = function () {
+            document.getElementById('mobileSidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        };
+        window.closeSidebar = function () {
+            document.getElementById('mobileSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        };
 
-        // ====== التحقق من المستخدم ======
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = "index.html"; return; }
-
             const userSnap = await getDoc(doc(db, "users", user.uid));
             if (!userSnap.exists() || !userSnap.data().approved) {
                 alert("بانتظار موافقة المنظم");
@@ -141,200 +185,139 @@
                 window.location.href = "index.html";
                 return;
             }
-
-            currentUser = user;
-            userData = userSnap.data();
-
-            document.getElementById('displayClubName').textContent = userData.clubName || user.email;
-            document.getElementById('welcomeMsg').textContent = `مرحباً كابتن، ${userData.captainName || ''} 👋`;
+            const userData = userSnap.data();
+            const clubName = userData.clubName || user.email;
+            document.getElementById('displayClubName').textContent = clubName;
+            document.getElementById('mobileClubName').textContent = clubName;
+            document.getElementById('welcomeMsg').textContent = `مرحباً كابتن ${userData.captainName || ''} 👋`;
             document.getElementById('userEmailDisplay').textContent = user.email;
-
             loadTournaments();
             loadClubStats(user.uid);
         });
 
-        // ====== تسجيل الخروج ======
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
+        async function doLogout() {
             if (confirm("هل تريد تسجيل الخروج؟")) {
                 await signOut(auth);
                 window.location.href = 'index.html';
             }
-        });
+        }
+        document.getElementById('logoutBtn').addEventListener('click', doLogout);
+        document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
 
-        // ====== تحميل البطولات ======
         async function loadTournaments() {
             try {
                 const snap = await getDocs(query(collection(db, "tournaments"), orderBy("createdAt", "desc")));
                 const section = document.getElementById('tournamentsSection');
-
                 if (snap.empty) {
-                    section.innerHTML = `
-                        <div class="bg-white rounded-xl p-8 text-center border border-slate-200">
-                            <i class="fas fa-trophy text-slate-200 text-5xl mb-4"></i>
-                            <p class="text-slate-500 font-bold">لا توجد بطولات متاحة حالياً</p>
-                            <p class="text-slate-400 text-sm mt-1">سيتم إشعارك عند إضافة بطولة جديدة</p>
-                        </div>
-                    `;
+                    section.innerHTML = `<div class="bg-white rounded-xl p-8 text-center border border-slate-200">
+                        <i class="fas fa-trophy text-slate-200 text-4xl mb-3 block"></i>
+                        <p class="text-slate-500 font-bold text-sm">لا توجد بطولات متاحة حالياً</p>
+                    </div>`;
                     return;
                 }
-
                 let html = '';
                 snap.forEach(d => {
                     const t = d.data();
                     const now = new Date();
                     const deadline = t.deadline ? new Date(t.deadline) : null;
                     const isOpen = deadline && now < deadline;
-
-                    // حساب العداد التنازلي
-                    const countdownId = `countdown-${d.id}`;
-
+                    const countdownId = `cd-${d.id}`;
                     html += `
                         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4">
-                            <div class="bg-slate-900 p-5 text-white">
-                                <div class="flex justify-between items-start">
+                            <div class="bg-slate-900 p-4 text-white">
+                                <div class="flex justify-between items-start gap-2">
                                     <div>
-                                        <span class="inline-block ${isOpen ? 'bg-amber-600' : 'bg-slate-600'} text-xs font-black px-3 py-1 rounded-full mb-2">
-                                            ${isOpen ? '🟢 مفتوح للتسجيل' : '🔴 التسجيل مغلق'}
+                                        <span class="inline-block ${isOpen ? 'bg-amber-600' : 'bg-slate-600'} text-xs font-black px-2 py-0.5 rounded-full mb-2">
+                                            ${isOpen ? '🟢 مفتوح' : '🔴 مغلق'}
                                         </span>
-                                        <h3 class="text-xl font-black">${t.name}</h3>
-                                        ${t.location ? `<p class="text-slate-300 text-sm mt-1"><i class="fas fa-map-marker-alt text-amber-400 ml-1"></i>${t.location}</p>` : ''}
+                                        <h3 class="font-black text-sm md:text-base">${t.name}</h3>
+                                        ${t.location ? `<p class="text-slate-300 text-xs mt-1"><i class="fas fa-map-marker-alt text-amber-400 ml-1"></i>${t.location}</p>` : ''}
                                     </div>
-                                    <div class="text-left">
+                                    <div class="text-left flex-shrink-0">
                                         <p class="text-xs text-slate-400">ملون: ${t.feeColor || 20} د.أ</p>
                                         <p class="text-xs text-slate-400">أسود: ${t.feeBlack || 25} د.أ</p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="p-5">
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
-                                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
-                                        <span class="block text-slate-400 text-xs font-bold">التوزين</span>
-                                        <span class="block text-slate-800 font-black text-sm mt-1">
-                                            <i class="fas fa-weight text-amber-500 ml-1"></i>${t.weighinDate || '-'}
-                                        </span>
+                            <div class="p-4">
+                                <div class="grid grid-cols-3 gap-2 mb-3">
+                                    <div class="bg-slate-50 p-2 rounded-lg text-center border border-slate-100">
+                                        <span class="block text-slate-400 text-[10px] font-bold">التوزين</span>
+                                        <span class="block text-slate-800 font-black text-xs mt-0.5">${t.weighinDate || '-'}</span>
                                     </div>
-                                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
-                                        <span class="block text-slate-400 text-xs font-bold">موعد البطولة</span>
-                                        <span class="block text-slate-800 font-black text-sm mt-1">
-                                            <i class="fas fa-trophy text-amber-500 ml-1"></i>${t.startDate || '-'}
-                                        </span>
+                                    <div class="bg-slate-50 p-2 rounded-lg text-center border border-slate-100">
+                                        <span class="block text-slate-400 text-[10px] font-bold">البطولة</span>
+                                        <span class="block text-slate-800 font-black text-xs mt-0.5">${t.startDate || '-'}</span>
                                     </div>
-                                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center col-span-2 md:col-span-1">
-                                        <span class="block text-slate-400 text-xs font-bold">آخر تسجيل</span>
-                                        <span class="block text-slate-800 font-black text-sm mt-1">
-                                            <i class="fas fa-clock text-red-500 ml-1"></i>${t.deadline || '-'}
-                                        </span>
+                                    <div class="bg-slate-50 p-2 rounded-lg text-center border border-slate-100">
+                                        <span class="block text-slate-400 text-[10px] font-bold">آخر تسجيل</span>
+                                        <span class="block text-red-600 font-black text-xs mt-0.5">${t.deadline || '-'}</span>
                                     </div>
                                 </div>
-
                                 ${isOpen ? `
-                                <div class="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg text-center">
-                                    <p class="text-red-600 text-xs font-bold mb-1">يُغلق باب التسجيل خلال:</p>
-                                    <div id="${countdownId}" class="text-red-700 font-black text-sm flex justify-center gap-3"></div>
+                                <div class="mb-3 p-2 bg-red-50 border border-red-100 rounded-lg text-center">
+                                    <p class="text-red-600 text-[10px] font-bold mb-1">يُغلق التسجيل خلال:</p>
+                                    <div id="${countdownId}" class="text-red-700 font-black text-xs flex justify-center gap-2"></div>
                                 </div>
                                 ` : ''}
-
-                                ${t.description ? `<p class="text-slate-500 text-sm mb-4">${t.description}</p>` : ''}
-
-                                ${isOpen ? `
-                                <a href="add-player.html?tid=${d.id}" class="block w-full text-center bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-lg shadow transition">
-                                    تسجيل لاعبي النادي <i class="fas fa-arrow-left mr-2"></i>
-                                </a>
-                                ` : `
-                                <div class="w-full text-center bg-slate-100 text-slate-500 font-black py-3 rounded-lg">
-                                    انتهى وقت التسجيل
-                                </div>
-                                `}
+                                ${t.description ? `<p class="text-slate-500 text-xs mb-3">${t.description}</p>` : ''}
+                                ${isOpen
+                                    ? `<a href="add-player.html?tid=${d.id}" class="block w-full text-center bg-amber-600 hover:bg-amber-700 text-white font-black py-2.5 rounded-lg shadow transition text-sm">تسجيل لاعبي النادي <i class="fas fa-arrow-left mr-1"></i></a>`
+                                    : `<div class="w-full text-center bg-slate-100 text-slate-400 font-bold py-2.5 rounded-lg text-sm">انتهى وقت التسجيل</div>`
+                                }
                             </div>
-                        </div>
-                    `;
-
-                    // تشغيل العداد
-                    if (isOpen && deadline) {
-                        startCountdown(deadline, countdownId);
-                    }
+                        </div>`;
+                    if (isOpen && deadline) startCountdown(deadline, countdownId);
                 });
-
                 section.innerHTML = html;
-
-            } catch(e) {
-                console.error(e);
-                document.getElementById('tournamentsSection').innerHTML = `<div class="bg-white rounded-xl p-6 text-center text-red-500 border border-red-100">خطأ في تحميل البطولات</div>`;
-            }
+            } catch(e) { console.error(e); }
         }
 
-        function startCountdown(deadline, elementId) {
+        function startCountdown(deadline, id) {
             const x = setInterval(() => {
-                const el = document.getElementById(elementId);
+                const el = document.getElementById(id);
                 if (!el) { clearInterval(x); return; }
-                const now = new Date().getTime();
-                const dist = deadline.getTime() - now;
-                if (dist < 0) { clearInterval(x); el.textContent = "انتهى الوقت"; return; }
-                const d = Math.floor(dist / (1000 * 60 * 60 * 24));
-                const h = Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const m = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
-                const s = Math.floor((dist % (1000 * 60)) / 1000);
-                el.innerHTML = `
-                    <div class="text-center"><span class="block text-2xl">${d}</span><span class="text-xs font-normal">أيام</span></div>
-                    <span class="text-xl">:</span>
-                    <div class="text-center"><span class="block text-2xl">${h}</span><span class="text-xs font-normal">ساعات</span></div>
-                    <span class="text-xl">:</span>
-                    <div class="text-center"><span class="block text-2xl">${m}</span><span class="text-xs font-normal">دقائق</span></div>
-                    <span class="text-xl">:</span>
-                    <div class="text-center"><span class="block text-2xl">${s}</span><span class="text-xs font-normal">ثواني</span></div>
-                `;
+                const dist = deadline.getTime() - Date.now();
+                if (dist < 0) { clearInterval(x); el.textContent = "انتهى"; return; }
+                const d = Math.floor(dist / 86400000);
+                const h = Math.floor((dist % 86400000) / 3600000);
+                const m = Math.floor((dist % 3600000) / 60000);
+                const s = Math.floor((dist % 60000) / 1000);
+                el.innerHTML = `<span>${d}ي</span><span>:</span><span>${String(h).padStart(2,'0')}س</span><span>:</span><span>${String(m).padStart(2,'0')}د</span><span>:</span><span>${String(s).padStart(2,'0')}ث</span>`;
             }, 1000);
         }
 
-        // ====== إحصائيات النادي ======
         async function loadClubStats(uid) {
             try {
                 const snap = await getDocs(query(collection(db, "players"), where("captainId", "==", uid)));
-                let colorCount = 0, blackCount = 0;
-                let allPaid = true;
-
+                let colorCount = 0, blackCount = 0, allPaid = true, hasPlayers = false;
                 snap.forEach(d => {
+                    hasPlayers = true;
                     const p = d.data();
                     if (p.belt === 'black') blackCount++; else colorCount++;
                     if (!p.paid) allPaid = false;
                 });
-
-                const total = colorCount + blackCount;
-                const colorFee = 20, blackFee = 25;
-                const totalFees = (colorCount * colorFee) + (blackCount * blackFee);
-
+                const totalFees = (colorCount * 20) + (blackCount * 25);
                 document.getElementById('colorCount').textContent = colorCount + ' لاعب';
                 document.getElementById('blackCount').textContent = blackCount + ' لاعب';
-                document.getElementById('totalCount').textContent = total;
+                document.getElementById('totalCount').textContent = colorCount + blackCount;
                 document.getElementById('totalFees').textContent = totalFees + ' د.أ';
-
                 document.getElementById('feeBreakdown').innerHTML = `
-                    <div class="flex justify-between text-slate-500">
-                        <span>ملون (${colorCount} × ${colorFee} د.أ)</span>
-                        <span>${colorCount * colorFee} د.أ</span>
-                    </div>
-                    <div class="flex justify-between text-slate-500">
-                        <span>أسود (${blackCount} × ${blackFee} د.أ)</span>
-                        <span>${blackCount * blackFee} د.أ</span>
-                    </div>
-                `;
-
-                const paymentDiv = document.getElementById('paymentStatus');
+                    <div class="flex justify-between text-slate-500"><span>ملون (${colorCount} × 20 د.أ)</span><span>${colorCount * 20} د.أ</span></div>
+                    <div class="flex justify-between text-slate-500 mt-1"><span>أسود (${blackCount} × 25 د.أ)</span><span>${blackCount * 25} د.أ</span></div>`;
+                const status = document.getElementById('paymentStatus');
                 const bar = document.getElementById('paymentBar');
-                
-                if (total === 0) {
-                    paymentDiv.className = 'mt-4 text-center p-3 rounded-lg font-black text-sm bg-slate-100 text-slate-500';
-                    paymentDiv.innerHTML = 'لا يوجد لاعبون مسجلون بعد';
+                if (!hasPlayers) {
+                    status.className = 'mt-3 text-center p-3 rounded-lg font-black text-sm bg-slate-100 text-slate-500';
+                    status.innerHTML = 'لا يوجد لاعبون بعد';
                 } else if (allPaid) {
-                    paymentDiv.className = 'mt-4 text-center p-3 rounded-lg font-black text-sm bg-green-100 text-green-700';
-                    paymentDiv.innerHTML = '<i class="fas fa-check-circle ml-1"></i> الرسوم مدفوعة ✓';
+                    status.className = 'mt-3 text-center p-3 rounded-lg font-black text-sm bg-green-100 text-green-700';
+                    status.innerHTML = '<i class="fas fa-check-circle ml-1"></i> الرسوم مدفوعة ✓';
                     bar.style.background = '#10b981';
                 } else {
-                    paymentDiv.className = 'mt-4 text-center p-3 rounded-lg font-black text-sm bg-red-100 text-red-700';
-                    paymentDiv.innerHTML = '<i class="fas fa-times-circle ml-1"></i> الرسوم غير مدفوعة';
-                    bar.style.background = '#ef4444';
+                    status.className = 'mt-3 text-center p-3 rounded-lg font-black text-sm bg-red-100 text-red-700';
+                    status.innerHTML = '<i class="fas fa-times-circle ml-1"></i> الرسوم غير مدفوعة';
                 }
-
             } catch(e) { console.error(e); }
         }
     </script>
