@@ -206,6 +206,95 @@
             </div>
         </div>
     </main>
+<script type="module">
+    import { db, auth } from './firebase-config.js';
+    import { collection, query, getDocs, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
+    // 1. حماية الصفحة (تأكد من وضع إيميلك الشخصي هنا)
+    onAuthStateChanged(auth, (user) => {
+        if (!user || user.email !== "admin@tkd.com") { // ضع إيميل المنظم هنا
+            // window.location.href = 'index.html'; 
+        }
+    });
+
+    // 2. جلب البيانات وحساب الإحصائيات (Live Update)
+    function startRealtimeUpdates() {
+        // سنراقب مجموعة اللاعبين
+        onSnapshot(collection(db, "players"), (snapshot) => {
+            let totalPlayers = 0;
+            let totalRevenue = 0;
+            let clubsData = {}; // لتجميع بيانات كل نادي على حدة
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                totalPlayers++;
+                const fee = (data.belt === 'black' ? 25 : 20);
+                totalRevenue += fee;
+
+                // تجميع الحسبة لكل نادي
+                const clubName = data.captainEmail || "نادي مجهول";
+                if (!clubsData[clubName]) {
+                    clubsData[clubName] = { amount: 0, paid: data.paid || false };
+                }
+                clubsData[clubName].amount += fee;
+            });
+
+            // تحديث الأرقام في الكروت العلويّة
+            document.querySelector('h3.text-3xl').innerText = totalPlayers;
+            document.querySelectorAll('h3.text-3xl')[1].innerText = Object.keys(clubsData).length;
+            document.querySelectorAll('h3.text-3xl')[2].innerText = totalRevenue.toLocaleString() + " د.أ";
+
+            // تحديث جدول المالية
+            renderFinanceTable(clubsData);
+        });
+    }
+
+    function renderFinanceTable(clubs) {
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = "";
+
+        Object.keys(clubs).forEach((clubEmail, index) => {
+            const club = clubs[clubEmail];
+            const clubNameClean = clubEmail.split('@')[0].toUpperCase();
+            
+            const row = `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-4 font-bold text-slate-800">${clubNameClean}</td>
+                    <td class="p-4 font-bold text-amber-600">${club.amount} د.أ</td>
+                    <td class="p-4 text-center">
+                        <div class="relative inline-block w-14 align-middle select-none">
+                            <input type="checkbox" onchange="togglePayment('${clubEmail}', this.checked)" 
+                                ${club.paid ? 'checked' : ''} 
+                                class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label class="toggle-label block overflow-hidden h-6 rounded-full ${club.paid ? 'bg-emerald-500' : 'bg-red-500'} cursor-pointer"></label>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+        });
+    }
+
+    // 3. دالة تحديث حالة الدفع في قاعدة البيانات
+    window.togglePayment = async (clubEmail, isPaid) => {
+        // ملاحظة: هذا يتطلب تحديث كل لاعبي النادي أو وجود جدول "أندية" منفصل
+        // للتبسيط الآن، سنقوم بتحديث حالة "مدفوع" لكل لاعب ينتمي لهذا النادي
+        const q = query(collection(db, "players"));
+        const querySnapshot = await getDocs(q);
+        
+        querySnapshot.forEach(async (playerDoc) => {
+            if (playerDoc.data().captainEmail === clubEmail) {
+                await updateDoc(doc(db, "players", playerDoc.id), {
+                    paid: isPaid
+                });
+            }
+        });
+    };
+
+    // تشغيل النظام
+    startRealtimeUpdates();
+
+</script>
 </body>
 </html>
