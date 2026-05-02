@@ -18,7 +18,7 @@
     <aside class="sidebar w-64 bg-slate-900 text-white flex flex-col shadow-xl hidden md:flex">
         <div class="p-6 border-b border-slate-700 text-center">
             <h1 class="text-xl font-bold text-amber-500">Taekwondo Reg</h1>
-            <p class="text-sm text-slate-400 mt-1">نادي أبطال الأردن</p>
+            <p id="displayClubName" class="text-sm text-slate-400 mt-1">جاري التحميل...</p>
         </div>
         <nav class="flex-1 p-4 space-y-2">
             <a href="dashboard.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
@@ -27,37 +27,37 @@
             <a href="add-player.html" class="flex items-center gap-3 p-3 bg-amber-600 text-white rounded shadow transition">
                 <i class="fas fa-user-plus"></i> تسجيل اللاعبين
             </a>
-            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
+            <a href="club-roster.html" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
                 <i class="fas fa-list"></i> كشف النادي
-            </a>
-            <a href="#" class="flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded transition">
-                <i class="fas fa-file-invoice-dollar"></i> المالية والرسوم
             </a>
         </nav>
         <div class="p-4 border-t border-slate-700">
-            <button class="w-full flex items-center gap-3 p-2 text-red-400 hover:bg-slate-800 rounded transition">
+            <button id="logoutBtn" class="w-full flex items-center gap-3 p-2 text-red-400 hover:bg-slate-800 rounded transition font-bold">
                 <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
             </button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <!-- الشريط العلوي -->
         <header class="bg-white shadow-sm p-4 flex justify-between items-center">
-            <h2 class="text-xl font-bold text-slate-800">تسجيل اللاعبين - بطولة المملكة 2026</h2>
+            <h2 class="text-xl font-bold text-slate-800 text-sm md:text-xl">تسجيل اللاعبين - بطولة المملكة 2026</h2>
             <div class="flex items-center gap-3">
-                <span class="text-sm font-semibold text-slate-600">الكابتن: محمد أحمد</span>
-                <div class="w-10 h-10 bg-slate-200 rounded-full flex items-center justify-center text-slate-600">
-                    <i class="fas fa-user"></i>
+                <span id="userEmailDisplay" class="text-xs md:text-sm font-semibold text-slate-600">تحقق من الحساب...</span>
+                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                    <i class="fas fa-user-shield"></i>
                 </div>
             </div>
         </header>
 
-        <div class="p-8">
-            <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
-                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4"><i class="fas fa-id-card text-amber-600 ml-2"></i>استمارة تسجيل لاعب جديد</h3>
+        <!-- منطقة الاستمارة -->
+        <div class="p-4 md:p-8">
+            <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-slate-200 max-w-4xl mx-auto">
+                <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-4">
+                    <i class="fas fa-id-card text-amber-600 ml-2"></i>استمارة تسجيل لاعب جديد
+                </h3>
                 
                 <form id="playerForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- تم إضافة id="playerName" هنا -->
                     <div class="col-span-2">
                         <label class="block text-sm font-bold text-slate-700 mb-2">اسم اللاعب (مقطعين)</label>
                         <input type="text" id="playerName" class="w-full p-3 border border-slate-300 rounded focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition" placeholder="مثال: أحمد محمود" required>
@@ -66,7 +66,6 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">سنة الميلاد</label>
                         <input type="text" id="birthYear" maxlength="4" class="w-full p-3 border border-slate-300 rounded focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition" placeholder="مثال: 2010">
-                        <p class="text-xs text-slate-400 mt-1">أدخل السنة كأرقام فقط</p>
                     </div>
 
                     <div>
@@ -76,7 +75,7 @@
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">الجنس</label>
-                        <select id="gender" class="w-full p-3 border border-slate-300 rounded">
+                        <select id="gender" class="w-full p-3 border border-slate-300 rounded outline-none focus:ring-1 focus:ring-amber-500">
                             <option value="">اختر الجنس...</option>
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
@@ -85,7 +84,7 @@
 
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">الحزام</label>
-                        <select id="belt" class="w-full p-3 border border-slate-300 rounded">
+                        <select id="belt" class="w-full p-3 border border-slate-300 rounded outline-none focus:ring-1 focus:ring-amber-500">
                             <option value="">اختر الحزام...</option>
                             <option value="color">ملون</option>
                             <option value="black">أسود</option>
@@ -94,12 +93,11 @@
 
                     <div class="col-span-2">
                         <label class="block text-sm font-bold text-slate-700 mb-2">الوزن المعتمد</label>
-                        <select id="weight" class="w-full p-3 border border-slate-300 rounded bg-slate-50 disabled:opacity-50" disabled>
-                            <option value="">أدخل السنة والجنس أولاً لعرض الأوزان...</option>
+                        <select id="weight" class="w-full p-3 border border-slate-300 rounded bg-slate-50 disabled:opacity-50 outline-none" disabled>
+                            <option value="">أدخل السنة والجنس أولاً...</option>
                         </select>
                     </div>
 
-                    <!-- تم إضافة id="saveBtn" هنا -->
                     <div class="col-span-2 mt-4">
                         <button type="button" id="saveBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 px-4 rounded shadow-lg transition duration-300 flex justify-center items-center gap-2">
                             <i class="fas fa-check-circle"></i> اعتماد وتسجيل اللاعب
@@ -111,19 +109,29 @@
     </main>
 
     <script type="module">
-        import { db } from './firebase-config.js';
+        import { db, auth } from './firebase-config.js';
         import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
-        import { auth } from './firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-// حارس الأمن: إذا لم يكن هناك مستخدم، ارجع لصفحة اللوجن
-onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        window.location.href = 'index.html';
-    } else {
-        console.log("مرحباً بك: " + user.email);
-    }
-});
+        // --- 1. حماية الصفحة والتحقق من تسجيل الدخول ---
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+            } else {
+                document.getElementById('userEmailDisplay').innerText = user.email;
+                document.getElementById('displayClubName').innerText = user.email.split('@')[0].toUpperCase();
+            }
+        });
+
+        // --- 2. منطق تسجيل الخروج ---
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (confirm("هل تريد تسجيل الخروج؟")) {
+                await signOut(auth);
+                window.location.href = 'index.html';
+            }
+        });
+
+        // --- 3. منطق حساب الفئات والأوزان ---
         const weightsData = {
             "kids_6_8": ["-18", "-20", "-22", "-24", "-26", "-29", "-32", "-35", "+35"],
             "kids_9_11": ["-20", "-22", "-24", "-26", "-29", "-32", "-35", "-40", "-45", "+50"],
@@ -148,7 +156,7 @@ onAuthStateChanged(auth, (user) => {
             yearInput.value = cleanedValue;
 
             if(cleanedValue.length !== 4 || !genderSelect.value) {
-                categoryField.value = "بانتظار إكمال البيانات...";
+                categoryField.value = "بانتظار البيانات...";
                 weightSelect.innerHTML = '<option value="">أدخل السنة والجنس أولاً...</option>';
                 weightSelect.disabled = true;
                 return;
@@ -164,7 +172,7 @@ onAuthStateChanged(auth, (user) => {
             else if (age >= 12 && age <= 14) { categoryName = genderSelect.value === 'male' ? "أشبال (12-14 سنة)" : "زهرات (12-14 سنة)"; weightKey = genderSelect.value === 'male' ? "cadets_male" : "cadets_female"; }
             else if (age >= 15 && age <= 17) { categoryName = genderSelect.value === 'male' ? "ناشئين (15-17 سنة)" : "ناشئات (15-17 سنة)"; weightKey = genderSelect.value === 'male' ? "juniors_male" : "juniors_female"; }
             else if (age >= 18 && age <= 40) { categoryName = genderSelect.value === 'male' ? "رجال (+18)" : "سيدات (+18)"; weightKey = genderSelect.value === 'male' ? "seniors_male" : "seniors_female"; }
-            else { categoryName = "العمر غير مصنف"; weightKey = ""; }
+            else { categoryName = "غير مصنف"; weightKey = ""; }
 
             categoryField.value = categoryName;
 
@@ -177,20 +185,21 @@ onAuthStateChanged(auth, (user) => {
                     weightSelect.appendChild(option);
                 });
                 weightSelect.disabled = false;
-                weightSelect.classList.remove('bg-slate-50', 'opacity-50');
+                weightSelect.classList.remove('bg-slate-50');
             }
         }
 
         yearInput.addEventListener('input', cleanInputAndCalculate);
         genderSelect.addEventListener('change', cleanInputAndCalculate);
 
+        // --- 4. إرسال البيانات لـ Firebase ---
         saveBtn.addEventListener('click', async () => {
             if(!playerNameInput.value || !yearInput.value || !genderSelect.value || !beltSelect.value || !weightSelect.value) {
-                alert("الرجاء تعبئة جميع البيانات!");
+                alert("الرجاء تعبئة كافة الحقول!");
                 return;
             }
 
-            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التسجيل...';
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
             saveBtn.disabled = true;
 
             try {
@@ -201,18 +210,18 @@ onAuthStateChanged(auth, (user) => {
                     belt: beltSelect.value,
                     category: categoryField.value,
                     weight: weightSelect.value,
-                    captainId: "temp_captain_123",
-                    clubName: "نادي أبطال الأردن",
+                    captainId: auth.currentUser.uid, // ربط اللاعب بـ ID النادي الحقيقي
+                    captainEmail: auth.currentUser.email,
                     createdAt: serverTimestamp()
                 });
 
-                alert("تم تسجيل اللاعب بنجاح!");
+                alert("تم تسجيل اللاعب بنجاح في قاعدة البيانات!");
                 document.getElementById('playerForm').reset();
                 cleanInputAndCalculate();
                 
             } catch (error) {
                 console.error(error);
-                alert("خطأ في الاتصال بالقاعدة!");
+                alert("حدث خطأ أثناء الاتصال بالسيرفر!");
             } finally {
                 saveBtn.innerHTML = '<i class="fas fa-check-circle"></i> اعتماد وتسجيل اللاعب';
                 saveBtn.disabled = false;
