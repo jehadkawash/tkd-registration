@@ -66,7 +66,17 @@
     <script type="module">
         import { db } from './firebase-config.js';
         import { collection, query, getDocs, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+        import { auth } from './firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
+// حارس الأمن: إذا لم يكن هناك مستخدم، ارجع لصفحة اللوجن
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = 'index.html';
+    } else {
+        console.log("مرحباً بك: " + user.email);
+    }
+});
         const tableBody = document.getElementById('playersTableBody');
         const financialSummary = document.getElementById('financialSummary');
 
