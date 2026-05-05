@@ -261,10 +261,10 @@
 
         <!-- ══ اللاعبون ══ -->
         <div id="section-players" class="section space-y-4">
-            <!-- فلاتر -->
+            <!-- فلاتر متقدمة -->
             <div class="surface border rounded-xl p-4 shadow-sm">
-                <h4 class="font-black t-main text-sm mb-3"><i class="fas fa-filter text-amber-500 ml-2"></i>فلترة وتصدير</h4>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                <h4 class="font-black t-main text-sm mb-3"><i class="fas fa-filter text-amber-500 ml-2"></i>فلترة وتصدير متقدم</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 mb-3">
                     <div>
                         <label class="block text-xs font-black t-sub mb-1">البطولة</label>
                         <select id="pf-tournament" class="w-full p-2.5 border rounded-lg text-xs surface">
@@ -307,16 +307,33 @@
                             <option value="female">أنثى</option>
                         </select>
                     </div>
+                    <!-- فلاتر الوزن والطول الجديدة -->
                     <div>
-                        <label class="block text-xs font-black t-sub mb-1">ترتيب الوزن</label>
-                        <select id="pf-sort" class="w-full p-2.5 border rounded-lg text-xs surface">
+                        <label class="block text-xs font-black text-amber-600 mb-1">الوزن الدقيق (من)</label>
+                        <input type="number" step="0.1" id="pf-weight-from" class="w-full p-2.5 border rounded-lg text-xs surface" placeholder="كغم (مثال: 50)">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-amber-600 mb-1">الوزن الدقيق (إلى)</label>
+                        <input type="number" step="0.1" id="pf-weight-to" class="w-full p-2.5 border rounded-lg text-xs surface" placeholder="كغم (مثال: 60)">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-blue-600 mb-1">ترتيب حسب</label>
+                        <select id="pf-sort-by" class="w-full p-2.5 border rounded-lg text-xs surface border-blue-200">
+                            <option value="weight">فئة الوزن</option>
+                            <option value="exactWeight">الوزن الدقيق</option>
+                            <option value="height">الطول</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-blue-600 mb-1">اتجاه الترتيب</label>
+                        <select id="pf-sort" class="w-full p-2.5 border rounded-lg text-xs surface border-blue-200">
                             <option value="asc">تصاعدي ↑</option>
                             <option value="desc">تنازلي ↓</option>
                         </select>
                     </div>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="filterPlayers()" class="bg-slate-700 hover:bg-slate-800 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-search"></i> عرض</button>
+                <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t" style="border-color:var(--border)">
+                    <button onclick="filterPlayers()" class="bg-slate-700 hover:bg-slate-800 text-white font-black py-2 px-6 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-search"></i> تطبيق الفلاتر وعرض</button>
                     <button onclick="exportAdminPDF()" class="bg-red-600 hover:bg-red-700 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-file-pdf"></i> PDF</button>
                     <button onclick="exportCSV()" class="bg-green-600 hover:bg-green-700 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-file-excel"></i> CSV</button>
                 </div>
@@ -723,26 +740,45 @@ window.filterPlayers = async function(){
     const cat=document.getElementById('pf-category').value;
     const belt=document.getElementById('pf-belt').value;
     const gender=document.getElementById('pf-gender').value;
+    const sortBy=document.getElementById('pf-sort-by').value;
     const sortDir=document.getElementById('pf-sort').value;
+    const weightFrom=parseFloat(document.getElementById('pf-weight-from').value);
+    const weightTo=parseFloat(document.getElementById('pf-weight-to').value);
+
     const tbody=document.getElementById('adminPlayersBody');
     tbody.innerHTML='<tr><td colspan="9" class="p-4 text-center"><i class="fas fa-spinner fa-spin text-amber-500"></i></td></tr>';
     try{
         const snap=await getDocs(collection(db,"players"));
         let players=[];
         snap.forEach(d=>players.push({id:d.id,...d.data()}));
+        
         if(tid)    players=players.filter(p=>p.tournamentId===tid);
         if(cid)    players=players.filter(p=>p.captainId===cid);
         if(cat)    players=players.filter(p=>p.category===cat);
         if(belt)   players=players.filter(p=>p.belt===belt);
         if(gender) players=players.filter(p=>p.gender===gender);
-        // ترتيب حسب الوزن
+
+        // فلترة الوزن الدقيق
+        if(!isNaN(weightFrom)) players = players.filter(p => (parseFloat(p.exactWeight) || 0) >= weightFrom);
+        if(!isNaN(weightTo))   players = players.filter(p => (parseFloat(p.exactWeight) || 0) <= weightTo);
+
+        // الترتيب
         players.sort((a,b)=>{
-            const wa=parseFloat((a.weight||'0').replace(/[^0-9.]/g,''));
-            const wb=parseFloat((b.weight||'0').replace(/[^0-9.]/g,''));
-            return sortDir==='asc'?wa-wb:wb-wa;
+            let valA, valB;
+            if(sortBy === 'exactWeight') {
+                valA = parseFloat(a.exactWeight) || 0;
+                valB = parseFloat(b.exactWeight) || 0;
+            } else if(sortBy === 'height') {
+                valA = parseInt(a.height) || 0;
+                valB = parseInt(b.height) || 0;
+            } else { // weight category
+                valA = parseFloat((a.weight||'0').replace(/[^0-9.]/g,''));
+                valB = parseFloat((b.weight||'0').replace(/[^0-9.]/g,''));
+            }
+            return sortDir==='asc' ? valA - valB : valB - valA;
         });
         
-        window.lastFilteredPlayers = players; // حفظ البيانات لدالة التصدير PDF و CSV
+        window.lastFilteredPlayers = players;
 
         if(!players.length){tbody.innerHTML='<tr><td colspan="9" class="p-8 text-center t-sub">لا توجد نتائج</td></tr>';return;}
         tbody.innerHTML=players.map((p,i)=>`
@@ -760,14 +796,14 @@ window.filterPlayers = async function(){
     }catch(e){console.error(e);}
 };
 
-/* ── Export Admin PDF (النسخة الآمنة والداعمة للغة العربية) ── */
+/* ── Export Admin PDF ── */
 window.exportAdminPDF = async function(){
     const btn = document.querySelector('button[onclick="exportAdminPDF()"]');
     const originalHtml = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التصدير...';
     btn.disabled = true;
 
-    await filterPlayers(); // تأكد من تحميل وعرض البيانات في الجدول أولاً
+    await filterPlayers(); 
     const playersToExport = window.lastFilteredPlayers || [];
 
     if (playersToExport.length === 0) {

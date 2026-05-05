@@ -10,9 +10,25 @@
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         :root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--accent:#d97706;}
         body{font-family:'Cairo',sans-serif;background:var(--bg);min-height:100vh;}
-        input{background:#0f172a;border-color:#334155;color:#f1f5f9;}
-        input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(217,119,6,.2);outline:none;}
-        input::placeholder{color:#475569;}
+        
+        /* -- التعديل 3: تحسين وضوح مربعات الإدخال -- */
+        input {
+            background: #1e293b; 
+            border-color: #475569; 
+            color: #ffffff; 
+            font-weight: 600;
+        }
+        input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(217,119,6,.2);
+            background: #0f172a;
+            outline: none;
+        }
+        input::placeholder {
+            color: #64748b; 
+            font-weight: 400;
+        }
+
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
         .float{animation:float 4s ease-in-out infinite;}
         /* forgot modal */
@@ -71,14 +87,14 @@
     <div class="flex items-center justify-center w-full lg:w-auto lg:min-w-[440px] p-5">
         <div class="w-full max-w-md">
 
-            <!-- Logo موبايل -->
-            <div class="flex items-center gap-3 mb-8 lg:hidden">
-                <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
-                    <i class="fas fa-fist-raised text-slate-900 text-lg"></i>
+            <!-- التعديل 1: Logo موبايل (متوسط ومرتب لعدم كسر الشاشة) -->
+            <div class="flex flex-col items-center justify-center gap-3 mb-8 lg:hidden text-center">
+                <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fas fa-fist-raised text-slate-900 text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-black text-white">تسجيل البطولات والاعبين</h1>
-                    <p class="text-amber-400 text-xs">الاتحاد الأردني للتايكواندو</p>
+                    <h1 class="text-2xl font-black text-white">البطولات واللاعبين</h1>
+                    <p class="text-amber-400 text-xs font-bold mt-1">الاتحاد الأردني للتايكواندو</p>
                 </div>
             </div>
 
@@ -212,7 +228,8 @@ window.sendReset = async()=>{
     try{
         await sendPasswordResetEmail(auth,email);
         alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-green-900/50 text-green-300 border border-green-700';
-        alertDiv.textContent='✅ تم إرسال رابط الاستعادة. تحقق من بريدك الإلكتروني.';
+        // التعديل 2: تنبيه المستخدم لمجلد السبام
+        alertDiv.textContent='✅ تم إرسال الرابط. تحقق من بريدك (ومجلد الرسائل المزعجة Spam).';
         alertDiv.classList.remove('hidden');
         setTimeout(closeForgot,4000);
     }catch(err){
