@@ -6,6 +6,8 @@
     <title>تسجيل لاعب | تسجيل البطولات والاعبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- مكتبة SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         :root{--bg:#f1f5f9;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;--text:#0f172a;--text2:#64748b;--sidebar:#0f172a;--sidebar-text:#cbd5e1;--accent:#d97706;}
@@ -25,6 +27,9 @@
         .shake{animation:shake .4s ease;}
         @keyframes flashGreen{0%{background:#dcfce7}100%{background:var(--surface)}}
         .flash-success{animation:flashGreen 1s ease;}
+        
+        /* تخصيص خط SweetAlert ليطابق الموقع */
+        .swal2-popup { font-family: 'Cairo', sans-serif !important; }
     </style>
 </head>
 <body class="flex min-h-screen">
@@ -296,7 +301,17 @@ let currentUser=null,currentUserData=null,currentTournament=null,existingPlayers
 onAuthStateChanged(auth,async(user)=>{
     if(!user){window.location.href="index.html";return;}
     const snap=await getDoc(doc(db,"users",user.uid));
-    if(!snap.exists()||!snap.data().approved){alert("بانتظار موافقة المنظم");await signOut(auth);window.location.href="index.html";return;}
+    if(!snap.exists()||!snap.data().approved){
+        // استخدام SweetAlert بدلاً من alert
+        await Swal.fire({
+            icon: 'warning',
+            title: 'عذراً!',
+            text: 'حسابك ما زال بانتظار موافقة المنظم.',
+            confirmButtonText: 'حسناً',
+            confirmButtonColor: '#d97706'
+        });
+        await signOut(auth);window.location.href="index.html";return;
+    }
     currentUser=user; currentUserData=snap.data();
     const club=currentUserData.clubName||user.email;
     document.getElementById('displayClubName').textContent=club;
@@ -307,7 +322,24 @@ onAuthStateChanged(auth,async(user)=>{
     loadRecentPlayers(user.uid);
 });
 
-async function doLogout(){ if(confirm("تسجيل الخروج؟")){await signOut(auth);window.location.href='index.html';} }
+// تأكيد تسجيل الخروج باستخدام SweetAlert
+async function doLogout(){ 
+    const result = await Swal.fire({
+        title: 'تسجيل الخروج؟',
+        text: "هل أنت متأكد أنك تريد المغادرة؟",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'نعم، تسجيل خروج',
+        cancelButtonText: 'إلغاء'
+    });
+    
+    if(result.isConfirmed) {
+        await signOut(auth);
+        window.location.href='index.html';
+    }
+}
 document.getElementById('logoutBtn').addEventListener('click',doLogout);
 document.getElementById('mobileLogoutBtn').addEventListener('click',doLogout);
 
@@ -424,13 +456,44 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
     const tid=document.getElementById('tournamentSelect').value;
     const exactWeight=document.getElementById('exactWeight').value.trim();
     
-    if(!tid){alert("الرجاء اختيار بطولة!");return;}
-    if(!name||!year||!gender||!belt||!weight){alert("الرجاء تعبئة كافة الحقول الأساسية!");return;}
-    if(cat==='غير مصنف'||!cat){alert("الفئة العمرية خارج نطاق البطولة!");return;}
-    if(!document.getElementById('dupAlert').classList.contains('hidden')){ if(!confirm("اللاعب قد يكون مكرراً. هل تريد المتابعة؟")) return; }
-    if(currentTournament?.requireHeight&&!document.getElementById('playerHeight').value){alert("الرجاء إدخال الطول!");return;}
-    if(currentTournament?.requireDob&&!document.getElementById('playerDob').value){alert("الرجاء إدخال تاريخ الميلاد!");return;}
-    if(currentTournament?.requireLevel&&!document.getElementById('playerLevel').value){alert("الرجاء اختيار المستوى!");return;}
+    // استبدال الـ alerts بـ SweetAlert
+    if(!tid){
+        Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء اختيار بطولة!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+        return;
+    }
+    if(!name||!year||!gender||!belt||!weight){
+        Swal.fire({ icon: 'error', title: 'حقول ناقصة', text: 'الرجاء تعبئة كافة الحقول الأساسية!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+        return;
+    }
+    if(cat==='غير مصنف'||!cat){
+        Swal.fire({ icon: 'error', title: 'خطأ', text: 'الفئة العمرية خارج نطاق البطولة!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+        return;
+    }
+    if(!document.getElementById('dupAlert').classList.contains('hidden')){ 
+        const result = await Swal.fire({
+            title: 'لاعب مكرر!',
+            text: 'اللاعب قد يكون مكرراً. هل تريد المتابعة؟',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d97706',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'نعم، تابع',
+            cancelButtonText: 'إلغاء'
+        });
+        if(!result.isConfirmed) return;
+    }
+    if(currentTournament?.requireHeight&&!document.getElementById('playerHeight').value){
+        Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء إدخال الطول!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+        return;
+    }
+    if(currentTournament?.requireDob&&!document.getElementById('playerDob').value){
+        Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء إدخال تاريخ الميلاد!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+        return;
+    }
+    if(currentTournament?.requireLevel&&!document.getElementById('playerLevel').value){
+        Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء اختيار المستوى!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+        return;
+    }
 
     const btn=document.getElementById('saveBtn');
     btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التسجيل...'; btn.disabled=true;
@@ -473,9 +536,21 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
         document.getElementById('weight').innerHTML='<option>أدخل السنة والجنس أولاً</option>';
         document.getElementById('weight').disabled=true; document.getElementById('weight').classList.add('opacity-60');
         hideFee(); document.getElementById('dupAlert').classList.add('hidden'); document.getElementById('dupAlert').classList.remove('flex');
-        const fc=document.getElementById('formCard'); fc.classList.add('flash-success'); setTimeout(()=>fc.classList.remove('flash-success'),1000);
+        
+        // إظهار رسالة النجاح المنبثقة بدلاً من وميض الشاشة
+        Swal.fire({
+            icon: 'success',
+            title: 'تم التسجيل!',
+            text: `تمت إضافة اللاعب "${name}" بنجاح.`,
+            timer: 2000,
+            showConfirmButton: false
+        });
+
         loadRecentPlayers(currentUser.uid);
-    }catch(e){ console.error(e); alert("❌ خطأ: "+e.message); }
+    }catch(e){ 
+        console.error(e); 
+        Swal.fire({ icon: 'error', title: 'خطأ', text: e.message, confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+    }
     finally{ btn.innerHTML='<i class="fas fa-check-circle"></i> اعتماد وتسجيل اللاعب'; btn.disabled=false; }
 });
 
