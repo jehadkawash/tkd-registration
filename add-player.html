@@ -131,7 +131,7 @@
 
                 <div>
                     <label class="block text-xs font-black t-sub mb-1.5">اسم اللاعب <span class="text-red-500">*</span></label>
-                    <input type="text" id="playerName" class="w-full p-3 border rounded-xl text-sm" placeholder="الاسم الثنائي — مثال: أحمد محمود">
+                    <input type="text" id="playerName" class="w-full p-3 border rounded-xl text-sm" placeholder="الاسم الثنائي — مثال: محمد يعقوب">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -192,8 +192,8 @@
                         <select id="playerLevel" class="w-full p-3 border rounded-xl text-sm">
                             <option value="">اختر المستوى...</option>
                             <option value="beginner">مبتدئ</option>
-                            <option value="intermediate">متوسط</option>
-                            <option value="advanced">متقدم</option>
+                            <option value="intermediate">وسط</option>
+                            <option value="advanced">اعلى من الوسط</option>
                             <option value="elite">نخبة</option>
                         </select>
                     </div>
@@ -279,8 +279,8 @@ function calcCategory(year,gender){
     const age=2026-parseInt(year);
     if(age>=6&&age<=8)   return{cat:"أطفال (6-8 سنوات)",key:"kids_6_8"};
     if(age>=9&&age<=11)  return{cat:"أطفال (9-11 سنة)",key:"kids_9_11"};
-    if(age>=12&&age<=14) return gender==='male'?{cat:"أشبال (12-14 سنة)",key:"cadets_male"}:{cat:"زهرات (12-14 سنة)",key:"cadets_female"};
-    if(age>=15&&age<=17) return gender==='male'?{cat:"ناشئين (15-17 سنة)",key:"juniors_male"}:{cat:"ناشئات (15-17 سنة)",key:"juniors_female"};
+    if(age>=12&&age<=14) return gender==='male'?{cat:"ذكـــور (12-14 سنة)",key:"cadets_male"}:{cat:"انــاث (12-14 سنة)",key:"cadets_female"};
+    if(age>=15&&age<=17) return gender==='male'?{cat:"ذكـــور (15-17 سنة)",key:"juniors_male"}:{cat:"انــاث (15-17 سنة)",key:"juniors_female"};
     if(age>=18&&age<=40) return gender==='male'?{cat:"رجال (+18)",key:"seniors_male"}:{cat:"سيدات (+18)",key:"seniors_female"};
     return{cat:"غير مصنف",key:""};
 }
