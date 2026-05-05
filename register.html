@@ -3,163 +3,336 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء حساب | نظام التايكواندو</title>
+    <title>إنشاء حساب | Taekwondo Reg</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        }
-        .input-field:focus {
-            border-color: #d97706;
-            box-shadow: 0 0 0 3px rgba(217,119,6,0.15);
-            outline: none;
-        }
+        :root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--accent:#d97706;}
+        body{font-family:'Cairo',sans-serif;background:var(--bg);min-height:100vh;}
+        input{background:#0f172a;border-color:#334155;color:#f1f5f9;}
+        input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(217,119,6,.2);outline:none;}
+        input::placeholder{color:#475569;}
+
+        /* progress steps */
+        .step-circle{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.75rem;border:2px solid #334155;color:#64748b;transition:all .3s;}
+        .step-circle.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+        .step-circle.done{background:#10b981;border-color:#10b981;color:#fff;}
+        .step-line{flex:1;height:2px;background:#334155;transition:background .3s;}
+        .step-line.done{background:#10b981;}
+
+        /* password strength */
+        .strength-bar{height:4px;border-radius:2px;transition:width .3s,background .3s;}
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden">
-        
-        <div class="bg-slate-900 p-8 text-center">
-            <div class="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+    
+    <!-- Dark mode toggle -->
+    <button onclick="toggleDarkReg()" class="fixed top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition" style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px)">
+        <i id="regDarkIcon" class="fas fa-moon text-amber-400 text-sm"></i>
+    </button>
+    
+    <div class="w-full max-w-lg">
+
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xl">
                 <i class="fas fa-fist-raised text-slate-900 text-2xl"></i>
             </div>
             <h1 class="text-2xl font-black text-white">إنشاء حساب كابتن</h1>
-            <p class="text-slate-400 mt-1 text-sm">سيتم مراجعة حسابك من قبل المنظم</p>
+            <p class="text-slate-400 text-sm mt-1">سيتم مراجعة حسابك من قبل المنظم قبل التفعيل</p>
         </div>
 
-        <form id="registerForm" class="p-8 space-y-5">
+        <!-- Progress Steps -->
+        <div class="flex items-center mb-8 px-4">
+            <div class="flex flex-col items-center">
+                <div class="step-circle active" id="step1-circle">1</div>
+                <p class="text-[10px] text-slate-400 mt-1">بيانات النادي</p>
+            </div>
+            <div class="step-line" id="line1"></div>
+            <div class="flex flex-col items-center">
+                <div class="step-circle" id="step2-circle">2</div>
+                <p class="text-[10px] text-slate-400 mt-1">بيانات الدخول</p>
+            </div>
+            <div class="step-line" id="line2"></div>
+            <div class="flex flex-col items-center">
+                <div class="step-circle" id="step3-circle">3</div>
+                <p class="text-[10px] text-slate-400 mt-1">تأكيد</p>
+            </div>
+        </div>
 
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">اسم النادي</label>
-                <div class="relative">
-                    <i class="fas fa-dumbbell absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="clubName"
-                        class="input-field w-full pr-10 p-3 border border-slate-200 rounded-lg transition"
-                        placeholder="مثال: نادي أبطال الأردن" required>
+        <!-- Card -->
+        <div class="rounded-2xl overflow-hidden shadow-2xl" style="background:#1e293b;border:1px solid #334155">
+
+            <!-- Step 1: بيانات النادي -->
+            <div id="step1" class="p-8 space-y-5">
+                <h3 class="text-white font-black mb-1">بيانات النادي والكابتن</h3>
+                <p class="text-slate-400 text-xs mb-5">أدخل معلومات النادي والكابتن المسؤول</p>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-400 mb-1.5">اسم النادي <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-dumbbell absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="text" id="clubName" class="w-full pr-10 p-3 border rounded-xl text-sm" placeholder="مثال: نادي أبطال الأردن" required>
+                    </div>
                 </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-400 mb-1.5">الاسم الكامل للكابتن <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="text" id="captainName" class="w-full pr-10 p-3 border rounded-xl text-sm" placeholder="الاسم الثنائي" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-400 mb-1.5">رقم الهاتف <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-phone absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="tel" id="phone" class="w-full pr-10 p-3 border rounded-xl text-sm" placeholder="07XXXXXXXX" required>
+                    </div>
+                </div>
+
+                <button onclick="goStep2()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3.5 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+                    التالي <i class="fas fa-arrow-left"></i>
+                </button>
+
+                <p class="text-center text-slate-400 text-sm">
+                    لديك حساب؟ <a href="index.html" class="text-amber-400 font-black hover:text-amber-300 transition">تسجيل الدخول</a>
+                </p>
             </div>
 
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">الاسم الكامل للكابتن</label>
-                <div class="relative">
-                    <i class="fas fa-user absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="text" id="captainName"
-                        class="input-field w-full pr-10 p-3 border border-slate-200 rounded-lg transition"
-                        placeholder="مثال: محمد أحمد" required>
+            <!-- Step 2: بيانات الدخول -->
+            <div id="step2" class="p-8 space-y-5 hidden">
+                <div class="flex items-center gap-2 mb-1">
+                    <button onclick="goStep1()" class="text-slate-400 hover:text-white transition"><i class="fas fa-arrow-right"></i></button>
+                    <h3 class="text-white font-black">بيانات الدخول</h3>
                 </div>
+                <p class="text-slate-400 text-xs mb-5">أدخل البريد الإلكتروني وكلمة مرور قوية</p>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-400 mb-1.5">البريد الإلكتروني <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="email" id="email" class="w-full pr-10 p-3 border rounded-xl text-sm" placeholder="example@club.com" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-400 mb-1.5">كلمة المرور <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="password" id="password" class="w-full pr-10 p-3 border rounded-xl text-sm" placeholder="6 أحرف على الأقل" oninput="checkStrength(this.value)" required>
+                        <button type="button" onclick="togglePass('password','eye1')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition">
+                            <i id="eye1" class="fas fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                    <!-- قوة كلمة المرور -->
+                    <div class="mt-2 space-y-1">
+                        <div class="flex gap-1">
+                            <div class="strength-bar flex-1" id="sb1" style="background:#334155"></div>
+                            <div class="strength-bar flex-1" id="sb2" style="background:#334155"></div>
+                            <div class="strength-bar flex-1" id="sb3" style="background:#334155"></div>
+                            <div class="strength-bar flex-1" id="sb4" style="background:#334155"></div>
+                        </div>
+                        <p id="strengthLabel" class="text-[10px] text-slate-500"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-400 mb-1.5">تأكيد كلمة المرور <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                        <input type="password" id="confirmPassword" class="w-full pr-10 p-3 border rounded-xl text-sm" placeholder="أعد كتابة كلمة المرور" required>
+                        <button type="button" onclick="togglePass('confirmPassword','eye2')" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition">
+                            <i id="eye2" class="fas fa-eye text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="step2Alert" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
+
+                <button onclick="goStep3()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3.5 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+                    التالي <i class="fas fa-arrow-left"></i>
+                </button>
             </div>
 
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">رقم الهاتف</label>
-                <div class="relative">
-                    <i class="fas fa-phone absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="tel" id="phone"
-                        class="input-field w-full pr-10 p-3 border border-slate-200 rounded-lg transition"
-                        placeholder="07XXXXXXXX" required>
+            <!-- Step 3: مراجعة وتأكيد -->
+            <div id="step3" class="p-8 hidden">
+                <div class="flex items-center gap-2 mb-5">
+                    <button onclick="goStep2()" class="text-slate-400 hover:text-white transition"><i class="fas fa-arrow-right"></i></button>
+                    <h3 class="text-white font-black">مراجعة البيانات</h3>
                 </div>
+
+                <!-- ملخص -->
+                <div class="rounded-xl p-4 mb-5 space-y-3 text-sm" style="background:#0f172a;border:1px solid #334155">
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 text-xs">اسم النادي</span>
+                        <span class="text-white font-black text-xs" id="review-club"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 text-xs">الكابتن</span>
+                        <span class="text-white font-black text-xs" id="review-captain"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 text-xs">الهاتف</span>
+                        <span class="text-white font-black text-xs" id="review-phone"></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-400 text-xs">البريد</span>
+                        <span class="text-white font-black text-xs" id="review-email"></span>
+                    </div>
+                </div>
+
+                <!-- تنبيه الانتظار -->
+                <div class="flex gap-3 p-4 rounded-xl mb-5" style="background:#1c1917;border:1px solid #44403c">
+                    <i class="fas fa-info-circle text-amber-500 flex-shrink-0 mt-0.5"></i>
+                    <p class="text-slate-300 text-xs leading-relaxed">
+                        بعد إنشاء الحساب، يجب أن يوافق المنظم على طلبك قبل أن تتمكن من تسجيل الدخول.
+                        قد يستغرق ذلك بعض الوقت.
+                    </p>
+                </div>
+
+                <div id="registerAlert" class="hidden p-3 rounded-xl text-xs font-bold text-center mb-4"></div>
+
+                <button id="registerBtn" onclick="registerUser()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3.5 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+                    <i class="fas fa-user-plus"></i> إنشاء الحساب
+                </button>
             </div>
 
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">البريد الإلكتروني</label>
-                <div class="relative">
-                    <i class="fas fa-envelope absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="email" id="email"
-                        class="input-field w-full pr-10 p-3 border border-slate-200 rounded-lg transition"
-                        placeholder="example@club.com" required>
-                </div>
-            </div>
+        </div>
 
-            <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
-                <div class="relative">
-                    <i class="fas fa-lock absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input type="password" id="password"
-                        class="input-field w-full pr-10 p-3 border border-slate-200 rounded-lg transition"
-                        placeholder="6 أحرف على الأقل" required minlength="6">
-                </div>
-            </div>
-
-            <button type="submit" id="registerBtn"
-                class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-lg shadow-lg transition flex items-center justify-center gap-2">
-                <i class="fas fa-user-plus"></i>
-                إنشاء الحساب
-            </button>
-
-            <div id="alertBox" class="hidden p-3 rounded-lg text-sm font-bold text-center"></div>
-        </form>
-
-        <p class="text-center text-sm text-slate-500 mb-6">
-            لديك حساب؟
-            <a href="index.html" class="text-amber-600 font-bold hover:underline">تسجيل الدخول</a>
-        </p>
+        <p class="text-center text-slate-600 text-xs mt-4">Taekwondo Reg © 2026 — الاتحاد الأردني للتايكواندو</p>
     </div>
 
-    <script type="module">
-        import { auth, db } from './firebase-config.js';
-        import { createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
-        import { setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+import { setDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
 
-        const form = document.getElementById('registerForm');
-        const btn = document.getElementById('registerBtn');
-        const alertBox = document.getElementById('alertBox');
+/* toggle password */
+window.togglePass = (inputId, iconId)=>{
+    const inp=document.getElementById(inputId), ico=document.getElementById(iconId);
+    inp.type = inp.type==='password' ? 'text' : 'password';
+    ico.className = inp.type==='password' ? 'fas fa-eye text-sm' : 'fas fa-eye-slash text-sm';
+};
 
-        function showAlert(msg, type = 'error') {
-            alertBox.className = `p-3 rounded-lg text-sm font-bold text-center ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
-            alertBox.textContent = msg;
-            alertBox.classList.remove('hidden');
-        }
+/* password strength */
+window.checkStrength = (val)=>{
+    const bars=[document.getElementById('sb1'),document.getElementById('sb2'),document.getElementById('sb3'),document.getElementById('sb4')];
+    const label=document.getElementById('strengthLabel');
+    let score=0;
+    if(val.length>=6) score++;
+    if(val.length>=10) score++;
+    if(/[A-Z]/.test(val)||/[a-z]/.test(val)) score++;
+    if(/[0-9]/.test(val)&&/[^A-Za-z0-9]/.test(val)) score++;
+    const colors=['#ef4444','#f97316','#eab308','#22c55e'];
+    const labels=['ضعيفة جداً','ضعيفة','متوسطة','قوية ✓'];
+    bars.forEach((b,i)=>{ b.style.background=i<score?colors[score-1]:'#334155'; });
+    label.textContent=val.length?labels[score-1]||'ضعيفة جداً':'';
+    label.style.color=colors[score-1]||'#64748b';
+};
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+/* step navigation */
+function updateSteps(current){
+    const steps=[1,2,3];
+    steps.forEach(s=>{
+        const circle=document.getElementById(`step${s}-circle`);
+        if(s<current){ circle.classList.add('done'); circle.innerHTML='<i class="fas fa-check text-xs"></i>'; }
+        else if(s===current){ circle.classList.remove('done'); circle.classList.add('active'); circle.innerHTML=s; }
+        else{ circle.classList.remove('done','active'); circle.innerHTML=s; }
+    });
+    if(current>1) document.getElementById('line1').classList.add('done'); else document.getElementById('line1').classList.remove('done');
+    if(current>2) document.getElementById('line2').classList.add('done'); else document.getElementById('line2').classList.remove('done');
+}
 
-            const clubName = document.getElementById('clubName').value.trim();
-            const captainName = document.getElementById('captainName').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
+window.goStep1 = ()=>{
+    document.getElementById('step1').classList.remove('hidden');
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3').classList.add('hidden');
+    updateSteps(1);
+};
+window.goStep2 = ()=>{
+    const club=document.getElementById('clubName').value.trim();
+    const cap=document.getElementById('captainName').value.trim();
+    const phone=document.getElementById('phone').value.trim();
+    if(!club||!cap||!phone){ alert("الرجاء تعبئة كافة الحقول!"); return; }
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step2').classList.remove('hidden');
+    document.getElementById('step3').classList.add('hidden');
+    updateSteps(2);
+};
+window.goStep3 = ()=>{
+    const email=document.getElementById('email').value.trim();
+    const pass=document.getElementById('password').value;
+    const confirm=document.getElementById('confirmPassword').value;
+    const alertDiv=document.getElementById('step2Alert');
+    alertDiv.classList.add('hidden');
+    if(!email||!pass){ alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700'; alertDiv.textContent='الرجاء تعبئة كافة الحقول!'; alertDiv.classList.remove('hidden'); return; }
+    if(pass.length<6){ alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700'; alertDiv.textContent='كلمة المرور يجب أن تكون 6 أحرف على الأقل!'; alertDiv.classList.remove('hidden'); return; }
+    if(pass!==confirm){ alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700'; alertDiv.textContent='كلمتا المرور غير متطابقتين!'; alertDiv.classList.remove('hidden'); return; }
+    // fill review
+    document.getElementById('review-club').textContent=document.getElementById('clubName').value.trim();
+    document.getElementById('review-captain').textContent=document.getElementById('captainName').value.trim();
+    document.getElementById('review-phone').textContent=document.getElementById('phone').value.trim();
+    document.getElementById('review-email').textContent=email;
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3').classList.remove('hidden');
+    updateSteps(3);
+};
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
-            alertBox.classList.add('hidden');
-
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-
-                await setDoc(doc(db, "users", user.uid), {
-                    email: email,
-                    clubName: clubName,
-                    captainName: captainName,
-                    phone: phone,
-                    role: "captain",
-                    approved: false,
-                    createdAt: serverTimestamp()
-                });
-
-                await signOut(auth);
-
-                showAlert("✅ تم إنشاء الحساب بنجاح! بانتظار موافقة المنظم.", 'success');
-                form.reset();
-
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 3000);
-
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') {
-                    showAlert("❌ هذا البريد الإلكتروني مستخدم مسبقاً");
-                } else {
-                    showAlert("❌ " + error.message);
-                }
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-user-plus"></i> إنشاء الحساب';
-            }
+/* register */
+window.registerUser = async()=>{
+    const clubName=document.getElementById('clubName').value.trim();
+    const captainName=document.getElementById('captainName').value.trim();
+    const phone=document.getElementById('phone').value.trim();
+    const email=document.getElementById('email').value.trim();
+    const password=document.getElementById('password').value;
+    const btn=document.getElementById('registerBtn');
+    const alertDiv=document.getElementById('registerAlert');
+    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+    alertDiv.classList.add('hidden');
+    try{
+        const cred=await createUserWithEmailAndPassword(auth,email,password);
+        await setDoc(doc(db,"users",cred.user.uid),{
+            email,clubName,captainName,phone,
+            role:"captain",approved:false,
+            createdAt:serverTimestamp()
         });
-    </script>
+        await signOut(auth);
+        alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-green-900/50 text-green-300 border border-green-700';
+        alertDiv.textContent='✅ تم إنشاء الحساب! بانتظار موافقة المنظم. سيتم توجيهك...';
+        alertDiv.classList.remove('hidden');
+        btn.innerHTML='<i class="fas fa-check-circle"></i> تم الإنشاء بنجاح!';
+        setTimeout(()=>window.location.href='index.html',3000);
+    }catch(e){
+        alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700';
+        alertDiv.textContent=e.code==='auth/email-already-in-use'?'❌ هذا البريد مستخدم مسبقاً':'❌ '+e.message;
+        alertDiv.classList.remove('hidden');
+        btn.disabled=false; btn.innerHTML='<i class="fas fa-user-plus"></i> إنشاء الحساب';
+    }
+};
+</script>
+
+<script>
+function toggleDarkReg(){
+    const d = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('darkMode', d);
+    const icon = document.getElementById('regDarkIcon');
+    if(icon) icon.className = d ? 'fas fa-sun text-amber-400 text-sm' : 'fas fa-moon text-amber-400 text-sm';
+    document.body.style.background = d ? '#0a0f1e' : '';
+}
+// Apply on load
+if(localStorage.getItem('darkMode') === 'true'){
+    document.documentElement.classList.add('dark');
+    document.body.style.background = '#0a0f1e';
+    document.addEventListener('DOMContentLoaded', () => {
+        const icon = document.getElementById('regDarkIcon');
+        if(icon) icon.className = 'fas fa-sun text-amber-400 text-sm';
+    });
+}
+</script>
 </body>
 </html>

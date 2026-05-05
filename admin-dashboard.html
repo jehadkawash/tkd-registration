@@ -3,279 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المنظم | Taekwondo Registration</title>
+    <title>لوحة المنظم | Taekwondo Reg</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
-        .sidebar { min-height: 100vh; }
-        .nav-active { background: linear-gradient(135deg, #d97706, #b45309); color: white; }
-        .badge-pulse { animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite; }
-        .tab-active { border-bottom: 3px solid #d97706; color: #d97706; font-weight: 700; }
-        .modal-overlay { backdrop-filter: blur(4px); }
+        :root{--bg:#f1f5f9;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;--text:#0f172a;--text2:#64748b;--sidebar:#0f172a;--sidebar-text:#cbd5e1;--accent:#d97706;}
+        .dark{--bg:#0a0f1e;--surface:#111827;--surface2:#1f2937;--border:#374151;--text:#f1f5f9;--text2:#94a3b8;--sidebar:#060c18;--sidebar-text:#94a3b8;}
+        *{transition:background-color .2s,border-color .2s,color .2s;}
+        body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);}
+        .surface{background:var(--surface);border-color:var(--border);}
+        .surface2{background:var(--surface2);border-color:var(--border);}
+        .t-main{color:var(--text);} .t-sub{color:var(--text2);}
+        .sidebar-bg{background:var(--sidebar);}
+        #mobileSidebar{transform:translateX(100%);transition:transform .3s;background:var(--sidebar);}
+        #mobileSidebar.open{transform:translateX(0);}
+        #sidebarOverlay{display:none;} #sidebarOverlay.open{display:block;}
+        .nav-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;transition:all .2s;font-size:.875rem;color:var(--sidebar-text);}
+        .nav-link:hover{background:rgba(255,255,255,.08);}
+        .nav-link.active{background:var(--accent);color:#fff;font-weight:900;}
+        .section{display:none;} .section.active{display:block;}
+        input,select,textarea{background:var(--surface2);border-color:var(--border);color:var(--text);}
+        input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(217,119,6,.15);outline:none;}
+        .toggle-field label{cursor:pointer;}
+        /* tab */
+        .tab-btn{padding:8px 16px;border-radius:8px;font-size:.8rem;font-weight:700;color:var(--text2);transition:all .2s;}
+        .tab-btn.active{background:var(--accent);color:#fff;}
+        /* badge */
+        @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.6}}
+        .badge-pulse{animation:badgePulse 1.5s infinite;}
     </style>
 </head>
-<body class="flex">
+<body class="flex min-h-screen">
 
-    <!-- القائمة الجانبية -->
-    <aside class="sidebar w-64 bg-slate-900 text-white flex flex-col shadow-xl hidden md:flex">
-        <div class="p-6 border-b border-slate-700 text-center">
-            <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mx-auto mb-2">
-                <i class="fas fa-fist-raised text-slate-900 text-xl"></i>
-            </div>
-            <h1 class="text-lg font-black text-amber-500">Taekwondo Reg</h1>
-            <p class="text-xs text-slate-400 mt-1">لوحة المنظم الرئيسي</p>
+<!-- ── SIDEBAR DESKTOP ── -->
+<aside class="sidebar-bg w-64 min-h-screen flex-col hidden md:flex shadow-xl flex-shrink-0 border-l border-white/5">
+    <div class="p-5 border-b border-white/10 text-center">
+        <div class="w-11 h-11 bg-amber-500 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
+            <i class="fas fa-fist-raised text-slate-900"></i>
         </div>
-        <nav class="flex-1 p-4 space-y-1">
-            <a href="#" onclick="showSection('overview')" class="nav-link flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
-                <i class="fas fa-chart-line w-4"></i> نظرة عامة
-            </a>
-            <a href="#" onclick="showSection('tournaments')" class="nav-link flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
-                <i class="fas fa-trophy w-4"></i> إدارة البطولات
-            </a>
-            <a href="#" onclick="showSection('captains')" class="nav-link flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm relative">
-                <i class="fas fa-users-cog w-4"></i> طلبات الكباتن
-                <span id="pendingBadge" class="hidden absolute left-3 top-3 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span>
-            </a>
-            <a href="#" onclick="showSection('finance')" class="nav-link flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
-                <i class="fas fa-coins w-4"></i> الرسوم والمالية
-            </a>
-            <a href="#" onclick="showSection('players')" class="nav-link flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
-                <i class="fas fa-clipboard-list w-4"></i> كشوف اللاعبين
-            </a>
-            <a href="#" onclick="showSection('admins')" class="nav-link flex items-center gap-3 p-3 text-slate-300 hover:bg-slate-800 rounded-lg transition text-sm">
-                <i class="fas fa-user-shield w-4"></i> إدارة المنظمين
-            </a>
-        </nav>
-        <div class="p-4 border-t border-slate-700">
-            <div id="adminInfo" class="text-xs text-slate-400 mb-3 text-center"></div>
-            <button id="logoutBtn" class="w-full flex items-center justify-center gap-2 p-2 text-red-400 hover:bg-slate-800 rounded-lg transition font-bold text-sm">
-                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
-            </button>
+        <h1 class="text-base font-black text-amber-400">Taekwondo Reg</h1>
+        <p class="text-[10px] mt-1" style="color:var(--sidebar-text)">لوحة المنظم الرئيسي</p>
+    </div>
+    <nav class="flex-1 p-3 space-y-0.5">
+        <a href="#" onclick="showSection('overview')"    class="nav-link active" id="nav-overview"><i class="fas fa-chart-line w-4"></i> نظرة عامة</a>
+        <a href="#" onclick="showSection('tournaments')" class="nav-link" id="nav-tournaments"><i class="fas fa-trophy w-4"></i> البطولات</a>
+        <a href="#" onclick="showSection('captains')"    class="nav-link" id="nav-captains">
+            <i class="fas fa-users-cog w-4"></i> الكباتن
+            <span id="pendingBadge" class="hidden mr-auto bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center badge-pulse"></span>
+        </a>
+        <a href="#" onclick="showSection('finance')"     class="nav-link" id="nav-finance"><i class="fas fa-coins w-4"></i> المالية</a>
+        <a href="#" onclick="showSection('players')"     class="nav-link" id="nav-players"><i class="fas fa-clipboard-list w-4"></i> اللاعبون</a>
+        <a href="#" onclick="showSection('admins')"      class="nav-link" id="nav-admins"><i class="fas fa-user-shield w-4"></i> المنظمون</a>
+        <a href="notifications.html" class="nav-link"><i class="fas fa-bell w-4"></i> الإشعارات <span id="adminNotifBadge" class="hidden mr-auto bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center"></span></a>
+    </nav>
+    <div class="p-3 border-t border-white/10 space-y-1">
+        <button onclick="toggleDark()" class="nav-link w-full text-right"><i id="darkIcon" class="fas fa-moon w-4"></i><span id="darkLabel">الوضع الداكن</span></button>
+        <button id="logoutBtn" class="nav-link w-full text-right text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt w-4"></i> تسجيل الخروج</button>
+    </div>
+</aside>
+
+<!-- MOBILE -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 md:hidden" onclick="closeSidebar()"></div>
+<div id="mobileSidebar" class="fixed top-0 right-0 h-full w-72 z-50 flex flex-col shadow-2xl md:hidden border-l border-white/10">
+    <div class="p-4 border-b border-white/10 flex justify-between items-center">
+        <div>
+            <h1 class="font-black text-amber-400">Taekwondo Reg</h1>
+            <p class="text-[10px]" style="color:var(--sidebar-text)">لوحة المنظم</p>
         </div>
-    </aside>
+        <button onclick="closeSidebar()" class="text-slate-400 hover:text-white p-2"><i class="fas fa-times text-xl"></i></button>
+    </div>
+    <nav class="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <a href="#" onclick="showSection('overview');closeSidebar()"    class="nav-link"><i class="fas fa-chart-line w-4"></i> نظرة عامة</a>
+        <a href="#" onclick="showSection('tournaments');closeSidebar()" class="nav-link"><i class="fas fa-trophy w-4"></i> البطولات</a>
+        <a href="#" onclick="showSection('captains');closeSidebar()"    class="nav-link"><i class="fas fa-users-cog w-4"></i> الكباتن</a>
+        <a href="#" onclick="showSection('finance');closeSidebar()"     class="nav-link"><i class="fas fa-coins w-4"></i> المالية</a>
+        <a href="#" onclick="showSection('players');closeSidebar()"     class="nav-link"><i class="fas fa-clipboard-list w-4"></i> اللاعبون</a>
+        <a href="#" onclick="showSection('admins');closeSidebar()"      class="nav-link"><i class="fas fa-user-shield w-4"></i> المنظمون</a>
+        <a href="notifications.html" class="nav-link"><i class="fas fa-bell w-4"></i> الإشعارات</a>
+    </nav>
+    <div class="p-3 border-t border-white/10 space-y-1">
+        <button onclick="toggleDark()" class="nav-link w-full text-right"><i class="fas fa-moon w-4"></i> الوضع الداكن</button>
+        <button id="mobileLogoutBtn" class="nav-link w-full text-right text-red-400"><i class="fas fa-sign-out-alt w-4"></i> تسجيل الخروج</button>
+    </div>
+</div>
 
-    <!-- المحتوى الرئيسي -->
-    <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
-        
-        <!-- الشريط العلوي -->
-        <header class="bg-white shadow-sm p-4 flex justify-between items-center border-b-4 border-amber-500 sticky top-0 z-10">
-            <h2 class="text-lg font-black text-slate-800" id="pageTitle">نظرة عامة</h2>
-            <div class="flex items-center gap-3">
-                <span class="text-sm font-bold text-slate-600" id="adminEmail">-</span>
-                <div class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-amber-500 shadow">
-                    <i class="fas fa-crown"></i>
+<!-- ── MAIN ── -->
+<main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
+
+    <header class="surface border-b sticky top-0 z-30 px-4 py-3 flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-3">
+            <button onclick="openSidebar()" class="md:hidden p-2 rounded-lg text-amber-500"><i class="fas fa-bars text-lg"></i></button>
+            <div>
+                <h2 id="pageTitle" class="font-black t-main text-sm md:text-base">نظرة عامة</h2>
+                <p id="adminEmailDisplay" class="text-xs t-sub hidden md:block"></p>
+            </div>
+        </div>
+        <div class="w-9 h-9 bg-amber-500 rounded-full flex items-center justify-center shadow"><i class="fas fa-crown text-slate-900 text-sm"></i></div>
+    </header>
+
+    <div class="p-3 md:p-6">
+
+        <!-- ══ نظرة عامة ══ -->
+        <div id="section-overview" class="section active space-y-5">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="surface border rounded-xl p-4 shadow-sm border-r-4" style="border-right-color:#3b82f6">
+                    <p class="text-xs t-sub font-bold mb-1">إجمالي اللاعبين</p>
+                    <p class="text-3xl font-black t-main" id="stat-players">-</p>
+                </div>
+                <div class="surface border rounded-xl p-4 shadow-sm border-r-4" style="border-right-color:#10b981">
+                    <p class="text-xs t-sub font-bold mb-1">الأندية</p>
+                    <p class="text-3xl font-black t-main" id="stat-clubs">-</p>
+                </div>
+                <div class="surface border rounded-xl p-4 shadow-sm border-r-4" style="border-right-color:var(--accent)">
+                    <p class="text-xs t-sub font-bold mb-1">الإيرادات</p>
+                    <p class="text-xl font-black t-main" id="stat-revenue">-</p>
+                </div>
+                <div class="surface border rounded-xl p-4 shadow-sm border-r-4" style="border-right-color:#ef4444">
+                    <p class="text-xs t-sub font-bold mb-1">طلبات معلقة</p>
+                    <p class="text-3xl font-black text-red-500" id="stat-pending">-</p>
                 </div>
             </div>
-        </header>
-
-        <!-- ===== قسم: نظرة عامة ===== -->
-        <div id="section-overview" class="section-content p-6 space-y-6">
-            <!-- بطاقات الإحصائيات -->
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-blue-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold mb-1">إجمالي اللاعبين</p>
-                            <h3 class="text-3xl font-black text-slate-800" id="stat-players">-</h3>
-                        </div>
-                        <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-users"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-emerald-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold mb-1">الأندية المشاركة</p>
-                            <h3 class="text-3xl font-black text-slate-800" id="stat-clubs">-</h3>
-                        </div>
-                        <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-dumbbell"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-amber-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold mb-1">الإيرادات المتوقعة</p>
-                            <h3 class="text-2xl font-black text-slate-800" id="stat-revenue">-</h3>
-                        </div>
-                        <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 border-r-4 border-r-red-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-slate-500 font-bold mb-1">بطاقات معلقة</p>
-                            <h3 class="text-3xl font-black text-slate-800" id="stat-pending">-</h3>
-                        </div>
-                        <div class="w-10 h-10 bg-red-50 text-red-500 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                    </div>
-                </div>
+            <div id="overviewTournaments" class="surface border rounded-xl p-4 shadow-sm">
+                <p class="font-black t-main text-sm mb-3"><i class="fas fa-trophy text-amber-500 ml-2"></i>البطولات النشطة</p>
+                <p class="t-sub text-xs text-center py-3">جاري التحميل...</p>
             </div>
+        </div>
 
-            <!-- البطولات النشطة -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
-                    <h4 class="font-black text-slate-800"><i class="fas fa-trophy text-amber-500 ml-2"></i>البطولات النشطة</h4>
-                    <button onclick="showSection('tournaments')" class="text-sm bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg transition font-bold">
-                        + إنشاء بطولة
+        <!-- ══ البطولات ══ -->
+        <div id="section-tournaments" class="section space-y-5">
+            <!-- نموذج إنشاء -->
+            <div class="surface border rounded-xl shadow-sm overflow-hidden">
+                <div class="surface2 border-b p-4 flex justify-between items-center">
+                    <h4 class="font-black t-main text-sm"><i class="fas fa-plus-circle text-amber-500 ml-2"></i>إنشاء بطولة جديدة</h4>
+                    <button onclick="document.getElementById('tournamentFormBody').classList.toggle('hidden')" class="text-xs t-sub hover:text-amber-500 transition font-bold">
+                        <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
-                <div id="overviewTournaments" class="p-4">
-                    <p class="text-slate-400 text-center py-4">جاري التحميل...</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== قسم: إدارة البطولات ===== -->
-        <div id="section-tournaments" class="section-content hidden p-6 space-y-6">
-            
-            <!-- نموذج إنشاء بطولة -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 p-4 border-b border-slate-200">
-                    <h4 class="font-black text-slate-800"><i class="fas fa-plus-circle text-amber-500 ml-2"></i>إنشاء بطولة جديدة</h4>
-                </div>
-                <div class="p-6">
-                    <form id="tournamentForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div id="tournamentFormBody" class="p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">اسم البطولة</label>
-                            <input type="text" id="t-name" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="مثال: بطولة المملكة المفتوحة 2026" required>
+                            <label class="block text-xs font-black t-sub mb-1.5">اسم البطولة <span class="text-red-500">*</span></label>
+                            <input type="text" id="t-name" class="w-full p-3 border rounded-xl text-sm" placeholder="مثال: بطولة المملكة المفتوحة 2026">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">مكان الإقامة</label>
-                            <input type="text" id="t-location" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="مثال: صالة الأمير حمزة">
+                            <label class="block text-xs font-black t-sub mb-1.5">مكان الإقامة</label>
+                            <input type="text" id="t-location" class="w-full p-3 border rounded-xl text-sm" placeholder="صالة الأمير حمزة">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">تاريخ التوزين</label>
-                            <input type="date" id="t-weighin" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" required>
+                            <label class="block text-xs font-black t-sub mb-1.5">تاريخ التوزين <span class="text-red-500">*</span></label>
+                            <input type="date" id="t-weighin" class="w-full p-3 border rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">تاريخ بداية البطولة</label>
-                            <input type="date" id="t-startdate" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" required>
+                            <label class="block text-xs font-black t-sub mb-1.5">بداية البطولة <span class="text-red-500">*</span></label>
+                            <input type="date" id="t-startdate" class="w-full p-3 border rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">تاريخ نهاية البطولة</label>
-                            <input type="date" id="t-enddate" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" required>
+                            <label class="block text-xs font-black t-sub mb-1.5">نهاية البطولة <span class="text-red-500">*</span></label>
+                            <input type="date" id="t-enddate" class="w-full p-3 border rounded-xl text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">آخر موعد للتسجيل</label>
-                            <input type="date" id="t-deadline" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" required>
+                            <label class="block text-xs font-black t-sub mb-1.5">آخر موعد للتسجيل <span class="text-red-500">*</span></label>
+                            <input type="date" id="t-deadline" class="w-full p-3 border rounded-xl text-sm">
                         </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">رسوم الحزام الملون (د.أ)</label>
-                            <input type="number" id="t-fee-color" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="20" value="20" min="0" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">رسوم الحزام الأسود (د.أ)</label>
-                            <input type="number" id="t-fee-black" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="25" value="25" min="0" required>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-black t-sub mb-1.5">رسوم ملون (د.أ)</label>
+                                <input type="number" id="t-fee-color" class="w-full p-3 border rounded-xl text-sm" value="20" min="0">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black t-sub mb-1.5">رسوم أسود (د.أ)</label>
+                                <input type="number" id="t-fee-black" class="w-full p-3 border rounded-xl text-sm" value="25" min="0">
+                            </div>
                         </div>
                         <div class="md:col-span-2">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">وصف البطولة (اختياري)</label>
-                            <textarea id="t-desc" rows="3" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none resize-none" placeholder="معلومات إضافية عن البطولة..."></textarea>
+                            <label class="block text-xs font-black t-sub mb-1.5">وصف البطولة</label>
+                            <textarea id="t-desc" rows="2" class="w-full p-3 border rounded-xl text-sm resize-none" placeholder="معلومات إضافية..."></textarea>
+                        </div>
+                        <!-- الحقول المرنة -->
+                        <div class="md:col-span-2">
+                            <p class="text-xs font-black t-sub mb-3"><i class="fas fa-sliders-h text-amber-500 ml-1"></i>الحقول الإضافية المطلوبة من الكباتن</p>
+                            <div class="grid grid-cols-3 gap-3">
+                                <label class="flex items-center gap-2 p-3 surface2 border rounded-xl cursor-pointer hover:border-amber-400 transition">
+                                    <input type="checkbox" id="t-req-height" class="w-4 h-4 accent-amber-600">
+                                    <span class="text-xs font-bold t-main">الطول</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-3 surface2 border rounded-xl cursor-pointer hover:border-amber-400 transition">
+                                    <input type="checkbox" id="t-req-dob" class="w-4 h-4 accent-amber-600">
+                                    <span class="text-xs font-bold t-main">تاريخ الميلاد</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-3 surface2 border rounded-xl cursor-pointer hover:border-amber-400 transition">
+                                    <input type="checkbox" id="t-req-level" class="w-4 h-4 accent-amber-600">
+                                    <span class="text-xs font-bold t-main">المستوى</span>
+                                </label>
+                                <label class="flex items-center gap-2 p-3 surface2 border rounded-xl cursor-pointer hover:border-amber-400 transition">
+                                    <input type="checkbox" id="t-req-birthcert" class="w-4 h-4 accent-amber-600">
+                                    <span class="text-xs font-bold t-main">شهادة الميلاد</span>
+                                </label>
+                            </div>
                         </div>
                         <div class="md:col-span-2">
-                            <button type="submit" id="createTournamentBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3 rounded-lg shadow transition flex items-center justify-center gap-2">
+                            <button id="createTournamentBtn" class="w-full text-white font-black py-3 rounded-xl shadow transition text-sm flex items-center justify-center gap-2" style="background:var(--sidebar)">
                                 <i class="fas fa-trophy"></i> إنشاء البطولة
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
-
             <!-- قائمة البطولات -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 p-4 border-b border-slate-200">
-                    <h4 class="font-black text-slate-800"><i class="fas fa-list text-slate-500 ml-2"></i>البطولات المنشأة</h4>
-                </div>
-                <div id="tournamentsList" class="p-4">
-                    <p class="text-slate-400 text-center py-4">جاري التحميل...</p>
-                </div>
+            <div class="surface border rounded-xl shadow-sm overflow-hidden">
+                <div class="surface2 border-b p-4"><h4 class="font-black t-main text-sm"><i class="fas fa-list text-slate-400 ml-2"></i>البطولات المنشأة</h4></div>
+                <div id="tournamentsList" class="p-4"><p class="t-sub text-xs text-center py-4">جاري التحميل...</p></div>
             </div>
         </div>
 
-        <!-- ===== قسم: طلبات الكباتن ===== -->
-        <div id="section-captains" class="section-content hidden p-6">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 p-4 border-b border-slate-200 flex gap-4">
-                    <button onclick="switchCaptainTab('pending')" id="tab-pending" class="tab-btn pb-2 text-sm font-bold text-slate-600 tab-active">
-                        بانتظار الموافقة <span id="pendingCount" class="bg-red-500 text-white text-xs rounded-full px-2 py-0.5 mr-1">0</span>
-                    </button>
-                    <button onclick="switchCaptainTab('approved')" id="tab-approved" class="tab-btn pb-2 text-sm font-bold text-slate-600">
-                        الأندية المعتمدة
-                    </button>
+        <!-- ══ الكباتن ══ -->
+        <div id="section-captains" class="section">
+            <div class="surface border rounded-xl shadow-sm overflow-hidden">
+                <div class="surface2 border-b p-4 flex gap-2">
+                    <button onclick="switchCaptainTab('pending')"  id="ctab-pending"  class="tab-btn active">بانتظار الموافقة <span id="pendingCount" class="bg-red-500 text-white text-[10px] rounded-full px-1.5 mr-1">0</span></button>
+                    <button onclick="switchCaptainTab('approved')" id="ctab-approved" class="tab-btn">الأندية المعتمدة</button>
                 </div>
-                
-                <!-- قائمة المعلقين -->
-                <div id="tab-content-pending" class="p-4">
-                    <div id="pendingList">
-                        <p class="text-slate-400 text-center py-8">جاري التحميل...</p>
-                    </div>
-                </div>
-
-                <!-- قائمة المعتمدين -->
-                <div id="tab-content-approved" class="hidden p-4">
-                    <div id="approvedList">
-                        <p class="text-slate-400 text-center py-8">جاري التحميل...</p>
-                    </div>
-                </div>
+                <div id="ctab-content-pending"  class="p-4"><p class="t-sub text-center text-xs py-6">جاري التحميل...</p></div>
+                <div id="ctab-content-approved" class="p-4 hidden"><p class="t-sub text-center text-xs py-6">جاري التحميل...</p></div>
             </div>
         </div>
 
-        <!-- ===== قسم: الرسوم والمالية ===== -->
-        <div id="section-finance" class="section-content hidden p-6">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
-                    <h4 class="font-black text-slate-800"><i class="fas fa-cash-register text-amber-500 ml-2"></i>تحصيل الرسوم يوم التوزين</h4>
-                    <div>
-                        <label class="text-xs font-bold text-slate-600 ml-2">تصفية حسب البطولة:</label>
-                        <select id="financeFilter" onchange="loadFinanceData()" class="text-sm border border-slate-300 rounded-lg p-2 outline-none focus:border-amber-500">
-                            <option value="">جميع البطولات</option>
-                        </select>
-                    </div>
+        <!-- ══ المالية ══ -->
+        <div id="section-finance" class="section">
+            <div class="surface border rounded-xl shadow-sm overflow-hidden">
+                <div class="surface2 border-b p-4 flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center">
+                    <h4 class="font-black t-main text-sm"><i class="fas fa-cash-register text-amber-500 ml-2"></i>تحصيل الرسوم</h4>
+                    <select id="financeFilter" onchange="loadFinanceData()" class="text-sm border rounded-lg p-2 surface">
+                        <option value="">جميع البطولات</option>
+                    </select>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right text-sm">
-                        <thead class="bg-slate-100 text-slate-600">
+                    <table class="w-full text-right text-xs md:text-sm" style="min-width:500px">
+                        <thead class="surface2 border-b">
                             <tr>
-                                <th class="p-4 font-bold">اسم النادي</th>
-                                <th class="p-4 font-bold">الكابتن</th>
-                                <th class="p-4 font-bold">عدد اللاعبين</th>
-                                <th class="p-4 font-bold">المبلغ المطلوب</th>
-                                <th class="p-4 font-bold text-center">حالة الدفع</th>
+                                <th class="p-3 font-black t-sub">اسم النادي</th>
+                                <th class="p-3 font-black t-sub">الكابتن</th>
+                                <th class="p-3 font-black t-sub">اللاعبون</th>
+                                <th class="p-3 font-black t-sub">المبلغ</th>
+                                <th class="p-3 font-black t-sub text-center">حالة الدفع</th>
+                                <th class="p-3 font-black t-sub text-center">تمديد</th>
                             </tr>
                         </thead>
-                        <tbody id="financeTableBody" class="divide-y divide-slate-100">
-                            <tr><td colspan="5" class="p-8 text-center text-slate-400">جاري التحميل...</td></tr>
+                        <tbody id="financeTableBody" class="divide-y" style="border-color:var(--border)">
+                            <tr><td colspan="6" class="p-8 text-center t-sub">جاري التحميل...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- ===== قسم: كشوف اللاعبين ===== -->
-        <div id="section-players" class="section-content hidden p-6 space-y-6">
-            
-            <!-- فلاتر التصدير -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                <h4 class="font-black text-slate-800 mb-4"><i class="fas fa-filter text-amber-500 ml-2"></i>فلترة وتصدير الكشوف</h4>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- ══ اللاعبون ══ -->
+        <div id="section-players" class="section space-y-4">
+            <!-- فلاتر -->
+            <div class="surface border rounded-xl p-4 shadow-sm">
+                <h4 class="font-black t-main text-sm mb-3"><i class="fas fa-filter text-amber-500 ml-2"></i>فلترة وتصدير</h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">البطولة</label>
-                        <select id="exportTournament" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500">
-                            <option value="">جميع البطولات</option>
+                        <label class="block text-xs font-black t-sub mb-1">البطولة</label>
+                        <select id="pf-tournament" class="w-full p-2.5 border rounded-lg text-xs surface">
+                            <option value="">الكل</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">الفئة العمرية</label>
-                        <select id="exportCategory" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500">
-                            <option value="">جميع الفئات</option>
+                        <label class="block text-xs font-black t-sub mb-1">النادي</label>
+                        <select id="pf-club" class="w-full p-2.5 border rounded-lg text-xs surface">
+                            <option value="">الكل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black t-sub mb-1">الفئة</label>
+                        <select id="pf-category" class="w-full p-2.5 border rounded-lg text-xs surface">
+                            <option value="">الكل</option>
                             <option>أطفال (6-8 سنوات)</option>
                             <option>أطفال (9-11 سنة)</option>
                             <option>أشبال (12-14 سنة)</option>
@@ -287,624 +293,548 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">الحزام</label>
-                        <select id="exportBelt" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500">
-                            <option value="">جميع الأحزمة</option>
+                        <label class="block text-xs font-black t-sub mb-1">الحزام</label>
+                        <select id="pf-belt" class="w-full p-2.5 border rounded-lg text-xs surface">
+                            <option value="">الكل</option>
                             <option value="color">ملون</option>
                             <option value="black">أسود</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">الجنس</label>
-                        <select id="exportGender" class="w-full p-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500">
+                        <label class="block text-xs font-black t-sub mb-1">الجنس</label>
+                        <select id="pf-gender" class="w-full p-2.5 border rounded-lg text-xs surface">
                             <option value="">الكل</option>
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
                         </select>
                     </div>
+                    <div>
+                        <label class="block text-xs font-black t-sub mb-1">ترتيب الوزن</label>
+                        <select id="pf-sort" class="w-full p-2.5 border rounded-lg text-xs surface">
+                            <option value="asc">تصاعدي ↑</option>
+                            <option value="desc">تنازلي ↓</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="flex gap-3 mt-4">
-                    <button onclick="filterAndDisplayPlayers()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
-                        <i class="fas fa-search"></i> عرض النتائج
-                    </button>
-                    <button onclick="exportToExcel()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
-                        <i class="fas fa-file-excel"></i> تحميل Excel
-                    </button>
-                    <button onclick="printTable()" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition flex items-center gap-2">
-                        <i class="fas fa-print"></i> طباعة
-                    </button>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterPlayers()" class="bg-slate-700 hover:bg-slate-800 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-search"></i> عرض</button>
+                    <button onclick="exportAdminPDF()" class="bg-red-600 hover:bg-red-700 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button onclick="exportCSV()" class="bg-green-600 hover:bg-green-700 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-file-excel"></i> CSV</button>
                 </div>
             </div>
-
-            <!-- جدول اللاعبين -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <!-- الجدول -->
+            <div class="surface border rounded-xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-right text-sm">
-                        <thead class="bg-slate-50 text-slate-600 border-b">
+                    <table class="w-full text-right text-xs" style="min-width:650px">
+                        <thead class="surface2 border-b">
                             <tr>
-                                <th class="p-4 font-bold">#</th>
-                                <th class="p-4 font-bold">اسم اللاعب</th>
-                                <th class="p-4 font-bold">النادي</th>
-                                <th class="p-4 font-bold">الفئة</th>
-                                <th class="p-4 font-bold">الوزن</th>
-                                <th class="p-4 font-bold">الحزام</th>
-                                <th class="p-4 font-bold">الجنس</th>
+                                <th class="p-3 font-black t-sub text-center">#</th>
+                                <th class="p-3 font-black t-sub">اللاعب</th>
+                                <th class="p-3 font-black t-sub">النادي</th>
+                                <th class="p-3 font-black t-sub">الفئة</th>
+                                <th class="p-3 font-black t-sub">الوزن</th>
+                                <th class="p-3 font-black t-sub">الحزام</th>
+                                <th class="p-3 font-black t-sub">الجنس</th>
                             </tr>
                         </thead>
-                        <tbody id="adminPlayersBody" class="divide-y divide-slate-100">
-                            <tr><td colspan="7" class="p-8 text-center text-slate-400">اختر الفلاتر ثم اضغط "عرض النتائج"</td></tr>
+                        <tbody id="adminPlayersBody" class="divide-y" style="border-color:var(--border)">
+                            <tr><td colspan="7" class="p-8 text-center t-sub">اختر الفلاتر ثم اضغط عرض</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- ===== قسم: إدارة المنظمين ===== -->
-        <div id="section-admins" class="section-content hidden p-6 space-y-6">
-            
-            <!-- إضافة منظم -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 p-4 border-b border-slate-200">
-                    <h4 class="font-black text-slate-800"><i class="fas fa-user-shield text-amber-500 ml-2"></i>إضافة منظم جديد (Super Admin)</h4>
-                </div>
-                <div class="p-6">
-                    <form id="addAdminForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- ══ المنظمون ══ -->
+        <div id="section-admins" class="section space-y-4">
+            <div class="surface border rounded-xl shadow-sm overflow-hidden">
+                <div class="surface2 border-b p-4"><h4 class="font-black t-main text-sm"><i class="fas fa-user-plus text-amber-500 ml-2"></i>إضافة منظم جديد</h4></div>
+                <div class="p-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">الاسم الكامل</label>
-                            <input type="text" id="adminName" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="اسم المنظم" required>
+                            <label class="block text-xs font-black t-sub mb-1.5">الاسم الكامل</label>
+                            <input type="text" id="newAdminName" class="w-full p-3 border rounded-xl text-sm" placeholder="اسم المنظم">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">البريد الإلكتروني</label>
-                            <input type="email" id="adminEmail2" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="admin@tkd.jo" required>
+                            <label class="block text-xs font-black t-sub mb-1.5">البريد الإلكتروني</label>
+                            <input type="email" id="newAdminEmail" class="w-full p-3 border rounded-xl text-sm" placeholder="admin@tkd.jo">
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">كلمة المرور</label>
-                            <input type="password" id="adminPassword" class="w-full p-3 border border-slate-300 rounded-lg focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none" placeholder="كلمة مرور قوية" required minlength="6">
+                            <label class="block text-xs font-black t-sub mb-1.5">كلمة المرور</label>
+                            <input type="password" id="newAdminPass" class="w-full p-3 border rounded-xl text-sm" placeholder="6+ أحرف" minlength="6">
                         </div>
                         <div class="md:col-span-3">
-                            <button type="submit" id="createAdminBtn" class="bg-slate-900 hover:bg-slate-800 text-white font-black py-3 px-6 rounded-lg shadow transition flex items-center gap-2">
+                            <button id="createAdminBtn" class="bg-slate-900 hover:bg-slate-800 text-white font-black py-3 px-6 rounded-xl shadow transition text-sm flex items-center gap-2">
                                 <i class="fas fa-user-plus"></i> إنشاء حساب المنظم
                             </button>
+                            <div id="adminCreateAlert" class="hidden mt-3 p-3 rounded-xl text-xs font-bold"></div>
                         </div>
-                    </form>
-                    <div id="adminAlert" class="hidden mt-3 p-3 rounded-lg text-sm font-bold"></div>
+                    </div>
                 </div>
             </div>
-
-            <!-- قائمة المنظمين -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 p-4 border-b border-slate-200">
-                    <h4 class="font-black text-slate-800"><i class="fas fa-users text-slate-500 ml-2"></i>قائمة المنظمين</h4>
-                </div>
-                <div id="adminsList" class="p-4">
-                    <p class="text-slate-400 text-center py-4">جاري التحميل...</p>
-                </div>
+            <div class="surface border rounded-xl shadow-sm overflow-hidden">
+                <div class="surface2 border-b p-4"><h4 class="font-black t-main text-sm"><i class="fas fa-users text-slate-400 ml-2"></i>قائمة المنظمين</h4></div>
+                <div id="adminsList" class="p-4"><p class="t-sub text-xs text-center py-4">جاري التحميل...</p></div>
             </div>
         </div>
 
-    </main>
+    </div>
+</main>
 
-    <script type="module">
-        import { db, auth } from './firebase-config.js';
-        import { 
-            collection, query, where, getDocs, getDoc, doc, addDoc, updateDoc, deleteDoc, 
-            onSnapshot, serverTimestamp, orderBy 
-        } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
-        import { 
-            onAuthStateChanged, signOut, createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword 
-        } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+<!-- Modal: تمديد التسجيل -->
+<div id="extModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4" style="background:rgba(0,0,0,.6);backdrop-filter:blur(4px)">
+    <div class="surface border rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+        <div class="bg-amber-600 p-4 flex justify-between items-center">
+            <h3 class="text-white font-black text-sm"><i class="fas fa-clock ml-2"></i>تمديد التسجيل</h3>
+            <button onclick="closeExtModal()" class="text-white/70 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="p-5 space-y-4">
+            <p class="t-sub text-xs">تمديد التسجيل للنادي: <span id="extClubName" class="font-black t-main"></span></p>
+            <input type="hidden" id="extCaptainId">
+            <div>
+                <label class="block text-xs font-black t-sub mb-1.5">المدة الإضافية</label>
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="number" id="extAmount" class="col-span-2 p-3 border rounded-xl text-sm" placeholder="مثال: 2" min="1">
+                    <select id="extUnit" class="p-3 border rounded-xl text-sm surface">
+                        <option value="minutes">دقيقة</option>
+                        <option value="hours" selected>ساعة</option>
+                        <option value="days">يوم</option>
+                    </select>
+                </div>
+            </div>
+            <p class="text-xs t-sub">سيُسمح لهذا النادي بالتسجيل حتى: <span id="extPreview" class="font-black text-amber-500"></span></p>
+            <button onclick="applyExtension()" id="extBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                <i class="fas fa-check"></i> تطبيق التمديد
+            </button>
+        </div>
+    </div>
+</div>
 
-        let currentUser = null;
-        let allPlayers = [];
+<script type="module">
+import { db, auth } from './firebase-config.js';
+import {
+    collection, query, where, getDocs, getDoc, doc, addDoc,
+    updateDoc, deleteDoc, serverTimestamp, orderBy, setDoc
+} from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+import { onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 
-        // ====== التحقق من صلاحيات الأدمن ======
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = "index.html"; return; }
+/* ── Dark Mode ── */
+window.toggleDark = ()=>{ const d=document.documentElement.classList.toggle('dark'); localStorage.setItem('darkMode',d); updateDarkUI(); };
+function updateDarkUI(){ const d=document.documentElement.classList.contains('dark'); const i=document.getElementById('darkIcon'),l=document.getElementById('darkLabel'); if(i) i.className=d?'fas fa-sun w-4':'fas fa-moon w-4'; if(l) l.textContent=d?'الوضع الفاتح':'الوضع الداكن'; }
+if(localStorage.getItem('darkMode')==='true') document.documentElement.classList.add('dark');
+updateDarkUI();
 
-            const userDoc = await getDoc(doc(db, "users", user.uid));
-            if (!userDoc.exists() || userDoc.data().role !== "super_admin") {
-                alert("غير مصرح لك بالدخول لهذه الصفحة");
-                await signOut(auth);
-                window.location.href = "index.html";
-                return;
-            }
+/* ── Sidebar ── */
+window.openSidebar  = ()=>{ document.getElementById('mobileSidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open'); document.body.style.overflow='hidden'; };
+window.closeSidebar = ()=>{ document.getElementById('mobileSidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); document.body.style.overflow=''; };
 
-            currentUser = user;
-            document.getElementById('adminEmail').textContent = user.email;
-            document.getElementById('adminInfo').textContent = user.email;
+/* ── Sections ── */
+const SECTION_TITLES={overview:'نظرة عامة',tournaments:'إدارة البطولات',captains:'الكباتن والأندية',finance:'الرسوم والمالية',players:'كشوف اللاعبين',admins:'إدارة المنظمين'};
+window.showSection = function(name){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('section-'+name).classList.add('active');
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    const navEl=document.getElementById('nav-'+name);
+    if(navEl) navEl.classList.add('active');
+    document.getElementById('pageTitle').textContent=SECTION_TITLES[name]||name;
+};
 
-            // تحميل البيانات
-            loadStats();
-            loadTournaments();
-            loadCaptains();
-            loadFinanceData();
-            loadAdmins();
-            showSection('overview');
-        });
+/* ── State ── */
+let currentUser=null, allPlayers=[], usersMap={}, tournamentsMap={};
 
-        // ====== تسجيل الخروج ======
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            if (confirm("هل تريد تسجيل الخروج؟")) {
-                await signOut(auth);
-                window.location.href = 'index.html';
-            }
-        });
+/* ── Auth ── */
+onAuthStateChanged(auth, async(user)=>{
+    if(!user){window.location.href="index.html";return;}
+    const snap=await getDoc(doc(db,"users",user.uid));
+    if(!snap.exists()||snap.data().role!=='super_admin'){alert("غير مصرح");await signOut(auth);window.location.href="index.html";return;}
+    currentUser=user;
+    document.getElementById('adminEmailDisplay').textContent=user.email;
+    await loadAll();
+});
 
-        // ====== التنقل بين الأقسام ======
-        window.showSection = function(name) {
-            document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden'));
-            document.getElementById('section-' + name).classList.remove('hidden');
+async function doLogout(){ if(confirm("تسجيل الخروج؟")){await signOut(auth);window.location.href='index.html';} }
+document.getElementById('logoutBtn').addEventListener('click',doLogout);
+document.getElementById('mobileLogoutBtn').addEventListener('click',doLogout);
 
-            const titles = {
-                'overview': 'نظرة عامة',
-                'tournaments': 'إدارة البطولات',
-                'captains': 'إدارة الكباتن والأندية',
-                'finance': 'الرسوم والمالية',
-                'players': 'كشوف اللاعبين',
-                'admins': 'إدارة المنظمين'
-            };
-            document.getElementById('pageTitle').textContent = titles[name] || name;
+/* ── Load All Data ── */
+async function loadAll(){
+    await Promise.all([loadStats(),loadTournaments(),loadCaptains(),loadFinanceData(),loadAdmins()]);
+    populateFilters();
+}
 
-            document.querySelectorAll('.nav-link').forEach(l => {
-                l.classList.remove('bg-amber-600', 'text-white');
-                l.classList.add('text-slate-300');
-            });
-        };
+/* ── Stats ── */
+async function loadStats(){
+    try{
+        const [playersSnap,pendingSnap]=await Promise.all([
+            getDocs(collection(db,"players")),
+            getDocs(query(collection(db,"users"),where("role","==","captain"),where("approved","==",false)))
+        ]);
+        let clubs=new Set(),rev=0;
+        playersSnap.forEach(d=>{ clubs.add(d.data().captainId); rev+=d.data().fee||(d.data().belt==='black'?25:20); });
+        document.getElementById('stat-players').textContent=playersSnap.size;
+        document.getElementById('stat-clubs').textContent=clubs.size;
+        document.getElementById('stat-revenue').textContent=rev.toLocaleString()+' د.أ';
+        document.getElementById('stat-pending').textContent=pendingSnap.size;
+        const badge=document.getElementById('pendingBadge');
+        if(pendingSnap.size>0){ badge.textContent=pendingSnap.size; badge.classList.remove('hidden'); }
+        document.getElementById('pendingCount').textContent=pendingSnap.size;
+    }catch(e){console.error(e);}
+}
 
-        // ====== تحميل الإحصائيات ======
-        async function loadStats() {
-            try {
-                const playersSnap = await getDocs(collection(db, "players"));
-                const usersSnap = await getDocs(query(collection(db, "users"), where("role", "==", "captain")));
-                const pendingSnap = await getDocs(query(collection(db, "users"), where("approved", "==", false), where("role", "==", "captain")));
-
-                let clubs = new Set();
-                let revenue = 0;
-
-                playersSnap.forEach(d => {
-                    clubs.add(d.data().captainId);
-                    revenue += d.data().belt === 'black' ? 25 : 20;
-                });
-
-                document.getElementById('stat-players').textContent = playersSnap.size;
-                document.getElementById('stat-clubs').textContent = clubs.size;
-                document.getElementById('stat-revenue').textContent = revenue.toLocaleString() + ' د.أ';
-                document.getElementById('stat-pending').textContent = pendingSnap.size;
-
-                // Badge في الشريط الجانبي
-                if (pendingSnap.size > 0) {
-                    const badge = document.getElementById('pendingBadge');
-                    badge.textContent = pendingSnap.size;
-                    badge.classList.remove('hidden');
-                }
-                document.getElementById('pendingCount').textContent = pendingSnap.size;
-
-            } catch(e) { console.error(e); }
-        }
-
-        // ====== تحميل البطولات ======
-        async function loadTournaments() {
-            try {
-                const snap = await getDocs(query(collection(db, "tournaments"), orderBy("createdAt", "desc")));
-                
-                // تعبئة الفلاتر
-                const financeFilter = document.getElementById('financeFilter');
-                const exportFilter = document.getElementById('exportTournament');
-                financeFilter.innerHTML = '<option value="">جميع البطولات</option>';
-                exportFilter.innerHTML = '<option value="">جميع البطولات</option>';
-
-                let html = '';
-                let overviewHtml = '';
-
-                if (snap.empty) {
-                    html = '<p class="text-slate-400 text-center py-6">لا توجد بطولات مضافة بعد</p>';
-                    overviewHtml = '<p class="text-slate-400 text-center py-4">لا توجد بطولات</p>';
-                }
-
-                snap.forEach(d => {
-                    const t = d.data();
-                    const tid = d.id;
-                    const now = new Date();
-                    const deadline = t.deadline ? new Date(t.deadline) : null;
-                    const isOpen = deadline && now < deadline;
-
-                    financeFilter.innerHTML += `<option value="${tid}">${t.name}</option>`;
-                    exportFilter.innerHTML += `<option value="${tid}">${t.name}</option>`;
-
-                    overviewHtml += `
-                        <div class="flex justify-between items-center p-3 bg-slate-50 rounded-lg mb-2 border border-slate-100">
-                            <div>
-                                <p class="font-bold text-slate-800 text-sm">${t.name}</p>
-                                <p class="text-xs text-slate-500">${t.location || ''} | التوزين: ${t.weighinDate || '-'}</p>
-                            </div>
-                            <span class="text-xs font-bold px-2 py-1 rounded-full ${isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                                ${isOpen ? 'مفتوح' : 'مغلق'}
-                            </span>
+/* ── Tournaments ── */
+async function loadTournaments(){
+    try{
+        const snap=await getDocs(query(collection(db,"tournaments"),orderBy("createdAt","desc")));
+        const finSel=document.getElementById('financeFilter');
+        const pfSel=document.getElementById('pf-tournament');
+        finSel.innerHTML='<option value="">جميع البطولات</option>';
+        pfSel.innerHTML='<option value="">الكل</option>';
+        tournamentsMap={};
+        let html='',ovHtml='';
+        if(snap.empty){html='<p class="t-sub text-xs text-center py-6">لا توجد بطولات بعد</p>';}
+        snap.forEach(d=>{
+            const t=d.data(),tid=d.id;
+            tournamentsMap[tid]=t;
+            const now=new Date();
+            const deadline=t.deadline?new Date(t.deadline):null;
+            const isOpen=deadline&&now<deadline;
+            finSel.innerHTML+=`<option value="${tid}">${t.name}</option>`;
+            pfSel.innerHTML+=`<option value="${tid}">${t.name}</option>`;
+            const fields=[t.requireHeight&&'الطول',t.requireDob&&'تاريخ الميلاد',t.requireLevel&&'المستوى'].filter(Boolean).join(' | ')||'الأساسية فقط';
+            ovHtml+=`<div class="flex justify-between items-center p-3 surface2 border rounded-xl mb-2 text-xs"><div><p class="font-black t-main">${t.name}</p><p class="t-sub mt-0.5">${t.location||''}</p></div><span class="font-bold px-2 py-1 rounded-full ${isOpen?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${isOpen?'مفتوح':'مغلق'}</span></div>`;
+            html+=`
+            <div class="border rounded-xl p-4 mb-3 shadow-sm surface hover:shadow-md transition">
+                <div class="flex justify-between items-start gap-2 flex-wrap">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
+                            <h5 class="font-black t-main text-sm">${t.name}</h5>
+                            <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${isOpen?'bg-green-100 text-green-700':'bg-red-100 text-red-700'}">${isOpen?'مفتوح':'مغلق'}</span>
                         </div>
-                    `;
-
-                    html += `
-                        <div class="border border-slate-200 rounded-xl p-4 mb-4 hover:shadow-sm transition">
-                            <div class="flex justify-between items-start flex-wrap gap-3">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <h5 class="font-black text-slate-800">${t.name}</h5>
-                                        <span class="text-xs font-bold px-2 py-0.5 rounded-full ${isOpen ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                                            ${isOpen ? 'التسجيل مفتوح' : 'التسجيل مغلق'}
-                                        </span>
-                                    </div>
-                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-slate-600">
-                                        <span><i class="fas fa-map-marker-alt text-amber-500 ml-1"></i>${t.location || '-'}</span>
-                                        <span><i class="fas fa-weight text-blue-500 ml-1"></i>توزين: ${t.weighinDate || '-'}</span>
-                                        <span><i class="fas fa-calendar text-green-500 ml-1"></i>${t.startDate || '-'} → ${t.endDate || '-'}</span>
-                                        <span><i class="fas fa-clock text-red-500 ml-1"></i>آخر تسجيل: ${t.deadline || '-'}</span>
-                                    </div>
-                                    <div class="mt-2 flex gap-4 text-xs font-bold">
-                                        <span class="bg-blue-50 text-blue-700 px-2 py-1 rounded">ملون: ${t.feeColor || 20} د.أ</span>
-                                        <span class="bg-slate-100 text-slate-700 px-2 py-1 rounded">أسود: ${t.feeBlack || 25} د.أ</span>
-                                    </div>
-                                    ${t.description ? `<p class="text-xs text-slate-400 mt-2">${t.description}</p>` : ''}
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="deleteTournament('${tid}')" class="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-lg transition" title="حذف">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-1 text-[10px] t-sub mb-2">
+                            <span><i class="fas fa-map-marker-alt text-amber-500 ml-1"></i>${t.location||'-'}</span>
+                            <span><i class="fas fa-weight text-blue-500 ml-1"></i>توزين: ${t.weighinDate||'-'}</span>
+                            <span><i class="fas fa-calendar text-green-500 ml-1"></i>${t.startDate||'-'}</span>
+                            <span><i class="fas fa-clock text-red-500 ml-1"></i>آخر تسجيل: ${t.deadline||'-'}</span>
                         </div>
-                    `;
-                });
-
-                document.getElementById('tournamentsList').innerHTML = html || '<p class="text-slate-400 text-center py-6">لا توجد بطولات</p>';
-                document.getElementById('overviewTournaments').innerHTML = overviewHtml || '<p class="text-slate-400 text-center py-4">لا توجد بطولات</p>';
-
-            } catch(e) { console.error(e); }
-        }
-
-        // ====== إنشاء بطولة ======
-        document.getElementById('tournamentForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('createTournamentBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
-
-            try {
-                await addDoc(collection(db, "tournaments"), {
-                    name: document.getElementById('t-name').value,
-                    location: document.getElementById('t-location').value,
-                    weighinDate: document.getElementById('t-weighin').value,
-                    startDate: document.getElementById('t-startdate').value,
-                    endDate: document.getElementById('t-enddate').value,
-                    deadline: document.getElementById('t-deadline').value,
-                    feeColor: parseInt(document.getElementById('t-fee-color').value) || 20,
-                    feeBlack: parseInt(document.getElementById('t-fee-black').value) || 25,
-                    description: document.getElementById('t-desc').value,
-                    createdBy: currentUser.uid,
-                    createdAt: serverTimestamp()
-                });
-
-                alert("✅ تم إنشاء البطولة بنجاح!");
-                document.getElementById('tournamentForm').reset();
-                loadTournaments();
-            } catch(e) {
-                console.error(e);
-                alert("❌ حدث خطأ: " + e.message);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-trophy"></i> إنشاء البطولة';
-            }
+                        <div class="flex gap-2 flex-wrap text-[10px]">
+                            <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-black">ملون: ${t.feeColor||20} د.أ</span>
+                            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-black">أسود: ${t.feeBlack||25} د.أ</span>
+                            <span class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-black"><i class="fas fa-plus-circle ml-1"></i>${fields}</span>
+                        </div>
+                    </div>
+                    <button onclick="deleteTournament('${tid}')" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition text-xs flex-shrink-0"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`;
         });
+        document.getElementById('tournamentsList').innerHTML=html;
+        document.getElementById('overviewTournaments').innerHTML=`<p class="font-black t-main text-sm mb-3"><i class="fas fa-trophy text-amber-500 ml-2"></i>البطولات النشطة</p>${ovHtml||'<p class="t-sub text-xs text-center py-3">لا توجد بطولات</p>'}`;
+    }catch(e){console.error(e);}
+}
 
-        // ====== حذف بطولة ======
-        window.deleteTournament = async (id) => {
-            if (!confirm("هل أنت متأكد من حذف هذه البطولة؟")) return;
-            try {
-                await deleteDoc(doc(db, "tournaments", id));
-                loadTournaments();
-            } catch(e) { alert("خطأ: " + e.message); }
-        };
-
-        // ====== تحميل الكباتن ======
-        async function loadCaptains() {
-            try {
-                const pendingSnap = await getDocs(query(collection(db, "users"), where("role", "==", "captain"), where("approved", "==", false)));
-                const approvedSnap = await getDocs(query(collection(db, "users"), where("role", "==", "captain"), where("approved", "==", true)));
-
-                // قائمة المعلقين
-                let pendingHtml = '';
-                pendingSnap.forEach(d => {
-                    const u = d.data();
-                    pendingHtml += `
-                        <div class="flex justify-between items-center p-4 bg-amber-50 rounded-xl border border-amber-100 mb-3">
-                            <div>
-                                <p class="font-black text-slate-800">${u.clubName}</p>
-                                <p class="text-sm text-slate-600">${u.captainName || '-'} | ${u.email}</p>
-                                <p class="text-xs text-slate-400">${u.phone || ''}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="approveCaptain('${d.id}')" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-lg transition text-sm">
-                                    <i class="fas fa-check ml-1"></i> موافقة
-                                </button>
-                                <button onclick="rejectCaptain('${d.id}')" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg transition text-sm">
-                                    <i class="fas fa-times ml-1"></i> رفض
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                });
-                document.getElementById('pendingList').innerHTML = pendingHtml || '<p class="text-slate-400 text-center py-8">لا توجد طلبات معلقة ✅</p>';
-
-                // قائمة المعتمدين
-                let approvedHtml = '<div class="overflow-x-auto"><table class="w-full text-right text-sm"><thead class="bg-slate-50"><tr><th class="p-3 font-bold">النادي</th><th class="p-3 font-bold">الكابتن</th><th class="p-3 font-bold">الإيميل</th><th class="p-3 font-bold">الهاتف</th><th class="p-3 font-bold text-center">إجراء</th></tr></thead><tbody class="divide-y divide-slate-100">';
-                approvedSnap.forEach(d => {
-                    const u = d.data();
-                    approvedHtml += `
-                        <tr class="hover:bg-slate-50">
-                            <td class="p-3 font-bold">${u.clubName}</td>
-                            <td class="p-3">${u.captainName || '-'}</td>
-                            <td class="p-3 text-slate-600">${u.email}</td>
-                            <td class="p-3 text-slate-600">${u.phone || '-'}</td>
-                            <td class="p-3 text-center">
-                                <button onclick="revokeCaptain('${d.id}')" class="text-orange-500 hover:text-orange-700 text-xs font-bold border border-orange-300 px-2 py-1 rounded transition">
-                                    إلغاء الموافقة
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                approvedHtml += '</tbody></table></div>';
-                document.getElementById('approvedList').innerHTML = approvedSnap.size > 0 ? approvedHtml : '<p class="text-slate-400 text-center py-8">لا توجد أندية معتمدة بعد</p>';
-
-            } catch(e) { console.error(e); }
-        }
-
-        window.approveCaptain = async (uid) => {
-            await updateDoc(doc(db, "users", uid), { approved: true });
-            loadCaptains(); loadStats();
-        };
-        window.rejectCaptain = async (uid) => {
-            if (!confirm("هل تريد رفض وحذف هذا الطلب؟")) return;
-            await deleteDoc(doc(db, "users", uid));
-            loadCaptains(); loadStats();
-        };
-        window.revokeCaptain = async (uid) => {
-            if (!confirm("هل تريد إلغاء موافقتك على هذا النادي؟")) return;
-            await updateDoc(doc(db, "users", uid), { approved: false });
-            loadCaptains();
-        };
-
-        // ====== التبديل بين تابات الكباتن ======
-        window.switchCaptainTab = function(tab) {
-            document.getElementById('tab-content-pending').classList.add('hidden');
-            document.getElementById('tab-content-approved').classList.add('hidden');
-            document.getElementById('tab-content-' + tab).classList.remove('hidden');
-
-            document.getElementById('tab-pending').classList.remove('tab-active');
-            document.getElementById('tab-approved').classList.remove('tab-active');
-            document.getElementById('tab-' + tab).classList.add('tab-active');
-        };
-
-        // ====== تحميل بيانات المالية ======
-        window.loadFinanceData = async function() {
-            const filterTid = document.getElementById('financeFilter').value;
-            try {
-                let q = collection(db, "players");
-                const snap = await getDocs(q);
-
-                const clubsData = {};
-                
-                // جلب بيانات الكباتن لمعرفة أسماء الأندية
-                const usersSnap = await getDocs(query(collection(db, "users"), where("role", "==", "captain")));
-                const usersMap = {};
-                usersSnap.forEach(d => { usersMap[d.id] = d.data(); });
-
-                snap.forEach(d => {
-                    const p = d.data();
-                    if (filterTid && p.tournamentId !== filterTid) return;
-                    
-                    const cid = p.captainId;
-                    const feeColor = 20, feeBlack = 25;
-                    const fee = p.belt === 'black' ? feeBlack : feeColor;
-                    
-                    if (!clubsData[cid]) {
-                        clubsData[cid] = {
-                            name: usersMap[cid]?.clubName || p.captainEmail || 'نادي',
-                            captain: usersMap[cid]?.captainName || '-',
-                            players: 0,
-                            amount: 0,
-                            paid: p.paid || false
-                        };
-                    }
-                    clubsData[cid].players++;
-                    clubsData[cid].amount += fee;
-                });
-
-                const tbody = document.getElementById('financeTableBody');
-                tbody.innerHTML = '';
-
-                if (Object.keys(clubsData).length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">لا توجد بيانات</td></tr>';
-                    return;
-                }
-
-                Object.entries(clubsData).forEach(([cid, club]) => {
-                    const row = document.createElement('tr');
-                    row.className = 'hover:bg-slate-50 transition';
-                    row.innerHTML = `
-                        <td class="p-4 font-bold text-slate-800">${club.name}</td>
-                        <td class="p-4 text-slate-600">${club.captain}</td>
-                        <td class="p-4 text-slate-600">${club.players} لاعب</td>
-                        <td class="p-4 font-bold text-amber-600 text-lg">${club.amount} د.أ</td>
-                        <td class="p-4 text-center">
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" ${club.paid ? 'checked' : ''} onchange="togglePayment('${cid}', this.checked, this)"
-                                    class="w-5 h-5 accent-green-600 cursor-pointer">
-                                <span class="text-sm font-bold ${club.paid ? 'text-green-600' : 'text-red-600'}">
-                                    ${club.paid ? 'مدفوع ✓' : 'غير مدفوع'}
-                                </span>
-                            </label>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-
-            } catch(e) { console.error(e); }
-        };
-
-        window.togglePayment = async (captainId, isPaid, checkbox) => {
-            const label = checkbox.nextElementSibling;
-            try {
-                const snap = await getDocs(query(collection(db, "players"), where("captainId", "==", captainId)));
-                const promises = [];
-                snap.forEach(d => {
-                    promises.push(updateDoc(doc(db, "players", d.id), { paid: isPaid }));
-                });
-                await Promise.all(promises);
-                label.textContent = isPaid ? 'مدفوع ✓' : 'غير مدفوع';
-                label.className = `text-sm font-bold ${isPaid ? 'text-green-600' : 'text-red-600'}`;
-            } catch(e) {
-                alert("خطأ: " + e.message);
-                checkbox.checked = !isPaid;
-            }
-        };
-
-        // ====== فلترة وعرض اللاعبين ======
-        window.filterAndDisplayPlayers = async function() {
-            const tournament = document.getElementById('exportTournament').value;
-            const category = document.getElementById('exportCategory').value;
-            const belt = document.getElementById('exportBelt').value;
-            const gender = document.getElementById('exportGender').value;
-
-            const tbody = document.getElementById('adminPlayersBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center"><i class="fas fa-spinner fa-spin text-amber-600"></i></td></tr>';
-
-            try {
-                const snap = await getDocs(collection(db, "players"));
-                const usersSnap = await getDocs(query(collection(db, "users"), where("role", "==", "captain")));
-                const usersMap = {};
-                usersSnap.forEach(d => { usersMap[d.id] = d.data(); });
-
-                let count = 0;
-                tbody.innerHTML = '';
-
-                snap.forEach(d => {
-                    const p = d.data();
-                    if (tournament && p.tournamentId !== tournament) return;
-                    if (category && p.category !== category) return;
-                    if (belt && p.belt !== belt) return;
-                    if (gender && p.gender !== gender) return;
-
-                    count++;
-                    const clubName = usersMap[p.captainId]?.clubName || p.captainEmail || '-';
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="p-3 text-slate-500 text-center">${count}</td>
-                            <td class="p-3 font-bold text-slate-800">${p.name}</td>
-                            <td class="p-3 text-slate-600">${clubName}</td>
-                            <td class="p-3 text-slate-600 text-xs">${p.category}</td>
-                            <td class="p-3 font-bold text-amber-600">${p.weight} كغم</td>
-                            <td class="p-3">
-                                <span class="px-2 py-1 rounded-full text-xs font-bold ${p.belt === 'black' ? 'bg-slate-900 text-white' : 'bg-blue-100 text-blue-700'}">
-                                    ${p.belt === 'black' ? 'أسود' : 'ملون'}
-                                </span>
-                            </td>
-                            <td class="p-3 text-slate-600">${p.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
-                        </tr>
-                    `;
-                });
-
-                if (count === 0) tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400">لا توجد نتائج بهذه الفلاتر</td></tr>';
-
-            } catch(e) { console.error(e); }
-        };
-
-        window.exportToExcel = async function() {
-            await filterAndDisplayPlayers();
-            const table = document.querySelector('#adminPlayersBody').closest('table');
-            const ws_data = [];
-            const headers = ['#', 'اسم اللاعب', 'النادي', 'الفئة', 'الوزن', 'الحزام', 'الجنس'];
-            ws_data.push(headers);
-            document.querySelectorAll('#adminPlayersBody tr').forEach(tr => {
-                const row = [];
-                tr.querySelectorAll('td').forEach(td => row.push(td.textContent.trim()));
-                ws_data.push(row);
-            });
-            const csvContent = ws_data.map(r => r.join(',')).join('\n');
-            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'players-export.csv'; a.click();
-        };
-
-        window.printTable = function() {
-            window.print();
-        };
-
-        // ====== تحميل المنظمين ======
-        async function loadAdmins() {
-            try {
-                const snap = await getDocs(query(collection(db, "users"), where("role", "==", "super_admin")));
-                let html = '<div class="space-y-3">';
-                snap.forEach(d => {
-                    const u = d.data();
-                    html += `
-                        <div class="flex justify-between items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
-                            <div>
-                                <p class="font-bold text-slate-800">${u.captainName || u.adminName || 'منظم'}</p>
-                                <p class="text-sm text-slate-500">${u.email}</p>
-                            </div>
-                            <span class="text-xs font-bold bg-amber-100 text-amber-700 px-3 py-1 rounded-full">
-                                <i class="fas fa-crown ml-1"></i> Super Admin
-                            </span>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                document.getElementById('adminsList').innerHTML = snap.size > 0 ? html : '<p class="text-slate-400 text-center py-4">لا يوجد منظمون آخرون</p>';
-            } catch(e) { console.error(e); }
-        }
-
-        // ====== إضافة منظم جديد ======
-        document.getElementById('addAdminForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('createAdminBtn');
-            const alertDiv = document.getElementById('adminAlert');
-            const name = document.getElementById('adminName').value;
-            const email = document.getElementById('adminEmail2').value;
-            const password = document.getElementById('adminPassword').value;
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
-
-            try {
-                // إنشاء الحساب
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                
-                // حفظ البيانات
-                await doc(db, "users", cred.user.uid);
-                await import("https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js").then(async ({ setDoc, doc: d }) => {
-                    await setDoc(d(db, "users", cred.user.uid), {
-                        email, adminName: name, role: "super_admin", approved: true, createdAt: serverTimestamp()
-                    });
-                });
-
-                // إعادة تسجيل دخول المنظم الحالي
-                alertDiv.className = 'p-3 rounded-lg text-sm font-bold bg-green-100 text-green-700';
-                alertDiv.textContent = '✅ تم إنشاء حساب المنظم بنجاح: ' + email;
-                alertDiv.classList.remove('hidden');
-                document.getElementById('addAdminForm').reset();
-                loadAdmins();
-            } catch(e) {
-                alertDiv.className = 'p-3 rounded-lg text-sm font-bold bg-red-100 text-red-700';
-                alertDiv.textContent = '❌ ' + (e.code === 'auth/email-already-in-use' ? 'هذا الإيميل مستخدم مسبقاً' : e.message);
-                alertDiv.classList.remove('hidden');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-user-plus"></i> إنشاء حساب المنظم';
-            }
+document.getElementById('createTournamentBtn').addEventListener('click', async()=>{
+    const name=document.getElementById('t-name').value.trim();
+    const deadline=document.getElementById('t-deadline').value;
+    const startDate=document.getElementById('t-startdate').value;
+    const endDate=document.getElementById('t-enddate').value;
+    const weighinDate=document.getElementById('t-weighin').value;
+    if(!name||!deadline||!startDate){alert("الرجاء تعبئة الحقول الأساسية!");return;}
+    const btn=document.getElementById('createTournamentBtn');
+    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+    try{
+        await addDoc(collection(db,"tournaments"),{
+            name,location:document.getElementById('t-location').value,
+            weighinDate,startDate,endDate,deadline,
+            feeColor:parseInt(document.getElementById('t-fee-color').value)||20,
+            feeBlack:parseInt(document.getElementById('t-fee-black').value)||25,
+            description:document.getElementById('t-desc').value,
+            requireHeight:document.getElementById('t-req-height').checked,
+            requireDob:document.getElementById('t-req-dob').checked,
+            requireLevel:document.getElementById('t-req-level').checked,
+                    requireBirthCert:document.getElementById('t-req-birthcert').checked,
+            createdBy:currentUser.uid, createdAt:serverTimestamp()
         });
+        alert("✅ تم إنشاء البطولة!");
+        ['t-name','t-location','t-desc'].forEach(id=>document.getElementById(id).value='');
+        ['t-weighin','t-startdate','t-enddate','t-deadline'].forEach(id=>document.getElementById(id).value='');
+        ['t-req-height','t-req-dob','t-req-level','t-req-birthcert'].forEach(id=>document.getElementById(id).checked=false);
+        document.getElementById('t-fee-color').value=20; document.getElementById('t-fee-black').value=25;
+        loadTournaments(); loadStats();
+    }catch(e){alert("❌ "+e.message);}
+    finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-trophy"></i> إنشاء البطولة';}
+});
 
-    </script>
+window.deleteTournament = async(id)=>{
+    if(!confirm("حذف هذه البطولة؟")) return;
+    await deleteDoc(doc(db,"tournaments",id));
+    loadTournaments();
+};
+
+/* ── Captains ── */
+async function loadCaptains(){
+    try{
+        const [pendingSnap,approvedSnap]=await Promise.all([
+            getDocs(query(collection(db,"users"),where("role","==","captain"),where("approved","==",false))),
+            getDocs(query(collection(db,"users"),where("role","==","captain"),where("approved","==",true)))
+        ]);
+        // pending
+        let html='';
+        pendingSnap.forEach(d=>{
+            const u=d.data();
+            html+=`<div class="flex justify-between items-center p-4 rounded-xl border mb-3 text-xs" style="background:#fff7ed;border-color:#fdba74">
+                <div><p class="font-black t-main">${u.clubName}</p><p class="t-sub mt-0.5">${u.captainName||'-'} | ${u.email}</p><p class="t-sub">${u.phone||''}</p></div>
+                <div class="flex gap-2">
+                    <button onclick="approveCaptain('${d.id}')" class="bg-green-600 hover:bg-green-700 text-white font-black px-3 py-2 rounded-lg transition"><i class="fas fa-check ml-1"></i>قبول</button>
+                    <button onclick="rejectCaptain('${d.id}')"  class="bg-red-600 hover:bg-red-700 text-white font-black px-3 py-2 rounded-lg transition"><i class="fas fa-times ml-1"></i>رفض</button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('ctab-content-pending').innerHTML=html||'<p class="t-sub text-center text-xs py-8">لا توجد طلبات معلقة ✅</p>';
+        // approved
+        usersMap={};
+        let aHtml='<div class="overflow-x-auto"><table class="w-full text-right text-xs" style="min-width:400px"><thead class="surface2 border-b"><tr><th class="p-3 font-black t-sub">النادي</th><th class="p-3 font-black t-sub">الكابتن</th><th class="p-3 font-black t-sub">الإيميل</th><th class="p-3 font-black t-sub text-center">اللاعبون</th><th class="p-3 font-black t-sub text-center">إلغاء</th></tr></thead><tbody class="divide-y" style="border-color:var(--border)">';
+        approvedSnap.forEach(d=>{
+            const u=d.data(); usersMap[d.id]=u;
+            aHtml+=`<tr class="hover:surface2 transition">
+                <td class="p-3 font-black t-main">${u.clubName}</td>
+                <td class="p-3 t-sub">${u.captainName||'-'}</td>
+                <td class="p-3 t-sub">${u.email}</td>
+                <td class="p-3 text-center"><span id="badge-${d.id}" class="bg-amber-100 text-amber-700 font-black px-2 py-0.5 rounded-full">...</span></td>
+                <td class="p-3 text-center"><button onclick="revokeCaptain('${d.id}')" class="text-orange-500 hover:text-orange-700 text-[10px] font-black border border-orange-300 px-2 py-1 rounded transition">إلغاء</button></td>
+            </tr>`;
+        });
+        aHtml+='</tbody></table></div>';
+        document.getElementById('ctab-content-approved').innerHTML=approvedSnap.size>0?aHtml:'<p class="t-sub text-center text-xs py-8">لا توجد أندية معتمدة</p>';
+        // badge counts
+        const playersSnap=await getDocs(collection(db,"players"));
+        const counts={};
+        playersSnap.forEach(d=>{ const cid=d.data().captainId; counts[cid]=(counts[cid]||0)+1; });
+        Object.keys(usersMap).forEach(uid=>{ const el=document.getElementById('badge-'+uid); if(el) el.textContent=(counts[uid]||0)+' لاعب'; });
+        // populate club filter
+        const pfClub=document.getElementById('pf-club');
+        pfClub.innerHTML='<option value="">الكل</option>';
+        approvedSnap.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.textContent=d.data().clubName; pfClub.appendChild(o); });
+    }catch(e){console.error(e);}
+}
+
+window.switchCaptainTab = function(tab){
+    document.getElementById('ctab-content-pending').classList.toggle('hidden',tab!=='pending');
+    document.getElementById('ctab-content-approved').classList.toggle('hidden',tab!=='approved');
+    document.getElementById('ctab-pending').classList.toggle('active',tab==='pending');
+    document.getElementById('ctab-approved').classList.toggle('active',tab==='approved');
+};
+window.approveCaptain = async(uid)=>{ await updateDoc(doc(db,"users",uid),{approved:true}); loadCaptains(); loadStats(); };
+window.rejectCaptain  = async(uid)=>{ if(!confirm("رفض وحذف الطلب؟")) return; await deleteDoc(doc(db,"users",uid)); loadCaptains(); loadStats(); };
+window.revokeCaptain  = async(uid)=>{ if(!confirm("إلغاء الموافقة؟")) return; await updateDoc(doc(db,"users",uid),{approved:false}); loadCaptains(); };
+
+/* ── Finance ── */
+window.loadFinanceData = async function(){
+    const filterTid=document.getElementById('financeFilter').value;
+    try{
+        const [playersSnap,usersSnap]=await Promise.all([
+            getDocs(collection(db,"players")),
+            getDocs(query(collection(db,"users"),where("role","==","captain")))
+        ]);
+        const umap={};
+        usersSnap.forEach(d=>umap[d.id]=d.data());
+        const clubs={};
+        playersSnap.forEach(d=>{
+            const p=d.data();
+            if(filterTid&&p.tournamentId!==filterTid) return;
+            const cid=p.captainId;
+            const fee=p.fee||(p.belt==='black'?25:20);
+            if(!clubs[cid]) clubs[cid]={name:umap[cid]?.clubName||p.clubName||'نادي',captain:umap[cid]?.captainName||'-',captainId:cid,players:0,amount:0,paid:p.paid||false};
+            clubs[cid].players++; clubs[cid].amount+=fee;
+            if(!p.paid) clubs[cid].paid=false;
+        });
+        const tbody=document.getElementById('financeTableBody');
+        if(!Object.keys(clubs).length){tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center t-sub">لا توجد بيانات</td></tr>';return;}
+        tbody.innerHTML=Object.entries(clubs).map(([cid,c])=>`
+        <tr class="hover:surface2 transition text-xs">
+            <td class="p-3 font-black t-main">${c.name}</td>
+            <td class="p-3 t-sub">${c.captain}</td>
+            <td class="p-3 t-sub">${c.players} لاعب</td>
+            <td class="p-3 font-black text-amber-500 text-sm">${c.amount} د.أ</td>
+            <td class="p-3 text-center">
+                <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" ${c.paid?'checked':''} onchange="togglePayment('${cid}',this.checked,this)" class="w-4 h-4 accent-green-600">
+                    <span class="font-black text-[10px] ${c.paid?'text-green-600':'text-red-500'}">${c.paid?'مدفوع ✓':'معلق'}</span>
+                </label>
+            </td>
+            <td class="p-3 text-center">
+                <button onclick="openExtModal('${cid}','${c.name}')" class="text-blue-500 hover:text-blue-700 border border-blue-300 px-2 py-1 rounded text-[10px] font-black transition hover:bg-blue-50">
+                    <i class="fas fa-clock ml-1"></i>تمديد
+                </button>
+            </td>
+        </tr>`).join('');
+    }catch(e){console.error(e);}
+};
+
+window.togglePayment = async(captainId,isPaid,checkbox)=>{
+    const label=checkbox.nextElementSibling;
+    try{
+        const snap=await getDocs(query(collection(db,"players"),where("captainId","==",captainId)));
+        await Promise.all(snap.docs.map(d=>updateDoc(doc(db,"players",d.id),{paid:isPaid})));
+        label.textContent=isPaid?'مدفوع ✓':'معلق';
+        label.className=`font-black text-[10px] ${isPaid?'text-green-600':'text-red-500'}`;
+    }catch(e){alert("خطأ: "+e.message); checkbox.checked=!isPaid;}
+};
+
+/* ── Extension Modal ── */
+window.openExtModal = function(captainId,clubName){
+    document.getElementById('extCaptainId').value=captainId;
+    document.getElementById('extClubName').textContent=clubName;
+    document.getElementById('extModal').style.display='flex';
+    updateExtPreview();
+};
+window.closeExtModal = ()=>{ document.getElementById('extModal').style.display='none'; };
+['extAmount','extUnit'].forEach(id=>document.getElementById(id).addEventListener('input',updateExtPreview));
+function updateExtPreview(){
+    const amount=parseInt(document.getElementById('extAmount').value)||0;
+    const unit=document.getElementById('extUnit').value;
+    const ms={minutes:60000,hours:3600000,days:86400000}[unit];
+    const deadline=new Date(Date.now()+amount*ms);
+    document.getElementById('extPreview').textContent=amount?deadline.toLocaleString('ar-EG'):'...';
+}
+window.applyExtension = async()=>{
+    const captainId=document.getElementById('extCaptainId').value;
+    const amount=parseInt(document.getElementById('extAmount').value);
+    const unit=document.getElementById('extUnit').value;
+    if(!amount){alert("الرجاء إدخال المدة!");return;}
+    const ms={minutes:60000,hours:3600000,days:86400000}[unit];
+    const newDeadline=new Date(Date.now()+amount*ms).toISOString();
+    const btn=document.getElementById('extBtn');
+    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التطبيق...';
+    try{
+        await updateDoc(doc(db,"users",captainId),{extensionDeadline:newDeadline});
+        alert("✅ تم تمديد التسجيل بنجاح!");
+        closeExtModal();
+    }catch(e){alert("❌ "+e.message);}
+    finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-check"></i> تطبيق التمديد';}
+};
+
+/* ── Players Filter ── */
+function populateFilters(){ /* تعبأ من loadTournaments و loadCaptains */ }
+
+window.filterPlayers = async function(){
+    const tid=document.getElementById('pf-tournament').value;
+    const cid=document.getElementById('pf-club').value;
+    const cat=document.getElementById('pf-category').value;
+    const belt=document.getElementById('pf-belt').value;
+    const gender=document.getElementById('pf-gender').value;
+    const sortDir=document.getElementById('pf-sort').value;
+    const tbody=document.getElementById('adminPlayersBody');
+    tbody.innerHTML='<tr><td colspan="7" class="p-4 text-center"><i class="fas fa-spinner fa-spin text-amber-500"></i></td></tr>';
+    try{
+        const snap=await getDocs(collection(db,"players"));
+        let players=[];
+        snap.forEach(d=>players.push({id:d.id,...d.data()}));
+        if(tid)    players=players.filter(p=>p.tournamentId===tid);
+        if(cid)    players=players.filter(p=>p.captainId===cid);
+        if(cat)    players=players.filter(p=>p.category===cat);
+        if(belt)   players=players.filter(p=>p.belt===belt);
+        if(gender) players=players.filter(p=>p.gender===gender);
+        // ترتيب حسب الوزن
+        players.sort((a,b)=>{
+            const wa=parseFloat((a.weight||'0').replace(/[^0-9.]/g,''));
+            const wb=parseFloat((b.weight||'0').replace(/[^0-9.]/g,''));
+            return sortDir==='asc'?wa-wb:wb-wa;
+        });
+        if(!players.length){tbody.innerHTML='<tr><td colspan="7" class="p-8 text-center t-sub">لا توجد نتائج</td></tr>';return;}
+        tbody.innerHTML=players.map((p,i)=>`
+        <tr class="hover:surface2 transition text-xs">
+            <td class="p-3 t-sub text-center">${i+1}</td>
+            <td class="p-3 font-black t-main">${p.name}</td>
+            <td class="p-3 t-sub">${usersMap[p.captainId]?.clubName||p.clubName||'-'}</td>
+            <td class="p-3 t-sub">${p.category}</td>
+            <td class="p-3 font-black text-amber-500">${p.weight} كغم</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded-full font-black text-[10px] ${p.belt==='black'?'bg-slate-900 text-white':'bg-blue-100 text-blue-700'}">${p.belt==='black'?'أسود':'ملون'}</span></td>
+            <td class="p-3 t-sub">${p.gender==='male'?'ذكر':'أنثى'}</td>
+        </tr>`).join('');
+    }catch(e){console.error(e);}
+};
+
+window.exportAdminPDF = async function(){
+    await filterPlayers();
+    const{jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const rows=[];
+    document.querySelectorAll('#adminPlayersBody tr').forEach(tr=>{
+        const row=[];
+        tr.querySelectorAll('td').forEach(td=>row.push(td.textContent.trim()));
+        if(row.length) rows.push(row);
+    });
+    pdf.setFillColor(15,23,42); pdf.rect(0,0,297,25,'F');
+    pdf.setFillColor(217,119,6); pdf.rect(0,22,297,3,'F');
+    pdf.setTextColor(255,255,255); pdf.setFontSize(14); pdf.setFont('helvetica','bold');
+    pdf.text('Taekwondo Reg — Players Report',148,14,{align:'center'});
+    pdf.setFontSize(8); pdf.setTextColor(203,213,225);
+    pdf.text(`Generated: ${new Date().toLocaleString('en-GB')}`,148,20,{align:'center'});
+    pdf.autoTable({startY:30,head:[['#','اللاعب','النادي','الفئة','الوزن','الحزام','الجنس']],body:rows,theme:'grid',headStyles:{fillColor:[217,119,6],textColor:[255,255,255],fontStyle:'bold',fontSize:8,halign:'center'},bodyStyles:{fontSize:7,halign:'center',cellPadding:2},alternateRowStyles:{fillColor:[248,250,252]},margin:{left:5,right:5}});
+    pdf.save(`players-report-${new Date().toISOString().slice(0,10)}.pdf`);
+};
+
+window.exportCSV = async function(){
+    await filterPlayers();
+    const rows=[['#','اللاعب','النادي','الفئة','الوزن','الحزام','الجنس']];
+    document.querySelectorAll('#adminPlayersBody tr').forEach(tr=>{
+        const row=[]; tr.querySelectorAll('td').forEach(td=>row.push(td.textContent.trim())); if(row.length) rows.push(row);
+    });
+    const csv=rows.map(r=>r.join(',')).join('\n');
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=`players-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+};
+
+/* ── Admins ── */
+async function loadAdmins(){
+    const snap=await getDocs(query(collection(db,"users"),where("role","==","super_admin")));
+    let html='<div class="space-y-3">';
+    snap.forEach(d=>{ const u=d.data(); html+=`<div class="flex justify-between items-center p-4 surface2 border rounded-xl text-xs"><div><p class="font-black t-main">${u.adminName||u.captainName||'منظم'}</p><p class="t-sub">${u.email}</p></div><span class="bg-amber-100 text-amber-700 font-black px-3 py-1 rounded-full text-[10px]"><i class="fas fa-crown ml-1"></i>Super Admin</span></div>`; });
+    html+='</div>';
+    document.getElementById('adminsList').innerHTML=snap.size?html:'<p class="t-sub text-xs text-center py-4">لا يوجد منظمون آخرون</p>';
+}
+
+document.getElementById('createAdminBtn').addEventListener('click', async()=>{
+    const name=document.getElementById('newAdminName').value.trim();
+    const email=document.getElementById('newAdminEmail').value.trim();
+    const pass=document.getElementById('newAdminPass').value;
+    const alertDiv=document.getElementById('adminCreateAlert');
+    if(!name||!email||!pass){alertDiv.className='p-3 rounded-xl text-xs font-bold bg-red-100 text-red-700';alertDiv.textContent='الرجاء تعبئة كافة الحقول!';alertDiv.classList.remove('hidden');return;}
+    const btn=document.getElementById('createAdminBtn');
+    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+    try{
+        const cred=await createUserWithEmailAndPassword(auth,email,pass);
+        await setDoc(doc(db,"users",cred.user.uid),{email,adminName:name,role:"super_admin",approved:true,createdAt:serverTimestamp()});
+        alertDiv.className='p-3 rounded-xl text-xs font-bold bg-green-100 text-green-700';
+        alertDiv.textContent='✅ تم إنشاء حساب المنظم: '+email;
+        alertDiv.classList.remove('hidden');
+        document.getElementById('newAdminName').value=''; document.getElementById('newAdminEmail').value=''; document.getElementById('newAdminPass').value='';
+        loadAdmins();
+    }catch(e){
+        alertDiv.className='p-3 rounded-xl text-xs font-bold bg-red-100 text-red-700';
+        alertDiv.textContent='❌ '+(e.code==='auth/email-already-in-use'?'هذا الإيميل مستخدم مسبقاً':e.message);
+        alertDiv.classList.remove('hidden');
+    }finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-user-plus"></i> إنشاء حساب المنظم';}
+});
+</script>
+
+<script type="module">
+// Admin notification badge
+import { db, auth } from './firebase-config.js';
+import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
+onAuthStateChanged(auth, (user) => {
+    if (!user) return;
+    onSnapshot(collection(db, "notifications"), (snap) => {
+        let unread = 0;
+        snap.forEach(d => { if (!(d.data().readBy || []).includes(user.uid)) unread++; });
+        const b = document.getElementById('adminNotifBadge');
+        if (b) {
+            if (unread > 0) { b.textContent = unread > 9 ? '9+' : unread; b.classList.remove('hidden'); b.classList.add('flex'); }
+            else { b.classList.add('hidden'); b.classList.remove('flex'); }
+        }
+    });
+});
+</script>
 </body>
 </html>
