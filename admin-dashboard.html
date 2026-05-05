@@ -6,7 +6,6 @@
     <title>لوحة المنظم | تسجيل البطولات والاعبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- تم استبدال مكتبات PDF القديمة بمكتبة html2pdf الداعمة للعربية -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
@@ -552,7 +551,7 @@ document.getElementById('createTournamentBtn').addEventListener('click', async()
             requireHeight:document.getElementById('t-req-height').checked,
             requireDob:document.getElementById('t-req-dob').checked,
             requireLevel:document.getElementById('t-req-level').checked,
-                    requireBirthCert:document.getElementById('t-req-birthcert').checked,
+            requireBirthCert:document.getElementById('t-req-birthcert').checked,
             createdBy:currentUser.uid, createdAt:serverTimestamp()
         });
         alert("✅ تم إنشاء البطولة!");
@@ -757,7 +756,6 @@ window.filterPlayers = async function(){
     }catch(e){console.error(e);}
 };
 
-/* ── Export Admin PDF (باستخدام html2pdf الداعم للعربية) ── */
 window.exportAdminPDF = async function(){
     const btn = document.querySelector('button[onclick="exportAdminPDF()"]');
     const originalHtml = btn.innerHTML;
