@@ -7,6 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- مكتبة الـ QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- مكتبة SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         :root{--bg:#f1f5f9;--surface:#ffffff;--surface2:#f8fafc;--border:#e2e8f0;--text:#0f172a;--text2:#64748b;--sidebar:#0f172a;--sidebar-text:#cbd5e1;--accent:#d97706;}
@@ -27,12 +31,23 @@
         input,select,textarea{background:var(--surface2);border-color:var(--border);color:var(--text);}
         input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(217,119,6,.15);outline:none;}
         .toggle-field label{cursor:pointer;}
-        /* tab */
         .tab-btn{padding:8px 16px;border-radius:8px;font-size:.8rem;font-weight:700;color:var(--text2);transition:all .2s;}
         .tab-btn.active{background:var(--accent);color:#fff;}
-        /* badge */
         @keyframes badgePulse{0%,100%{opacity:1}50%{opacity:.6}}
         .badge-pulse{animation:badgePulse 1.5s infinite;}
+        
+        .swal2-popup { font-family: 'Cairo', sans-serif !important; border-radius: 1.5rem !important; }
+
+        /* ستايل الهويات المخفي */
+        #id-cards-container { position: absolute; left: -9999px; top: 0; width: 210mm; background: #fff; }
+        .id-card { width: 85mm; height: 115mm; border: 2px solid #000; position: relative; background: #fff; color: #000; padding: 10px; box-sizing: border-box; text-align: center; display: inline-block; margin: 5px; border-radius: 10px; overflow: hidden; page-break-inside: avoid; }
+        .id-header { background: #0f172a; color: #fff; padding: 5px; margin: -10px -10px 10px -10px; font-weight: bold; font-size: 14px;}
+        .id-logo { height: 50px; width: auto; object-fit: contain; margin: 5px auto; }
+        .id-name { font-size: 18px; font-weight: 900; margin: 10px 0; border-bottom: 2px solid #d97706; padding-bottom: 5px;}
+        .id-club { font-size: 14px; font-weight: bold; color: #444; }
+        .id-qr { margin: 10px auto; display: flex; justify-content: center; }
+        .id-details { font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; text-align: right; margin-top: 10px;}
+        .id-footer { position: absolute; bottom: 0; left: 0; right: 0; background: #d97706; height: 10px; }
     </style>
 </head>
 <body class="flex min-h-screen">
@@ -177,6 +192,22 @@
                                 <input type="number" id="t-fee-black" class="w-full p-3 border rounded-xl text-sm" value="25" min="0">
                             </div>
                         </div>
+                        
+                        <!-- إضافة الشعار هنا -->
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-black t-sub mb-1.5">شعار البطولة (اختياري - سيظهر على هويات اللاعبين)</label>
+                            <div class="flex items-center gap-4 p-4 surface2 border-2 border-dashed rounded-xl cursor-pointer hover:border-amber-400 transition" onclick="document.getElementById('t-logo-input').click()">
+                                <div id="t-logo-preview" class="w-16 h-16 rounded-lg bg-white border flex items-center justify-center overflow-hidden text-slate-300">
+                                    <i class="fas fa-image text-2xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black t-main">اختر شعار البطولة</p>
+                                    <p class="text-[10px] t-sub mt-1">اضغط هنا لرفع الصورة (PNG, JPG)</p>
+                                </div>
+                                <input type="file" id="t-logo-input" accept="image/*" class="hidden" onchange="previewTLogo(this)">
+                            </div>
+                        </div>
+
                         <div class="md:col-span-2">
                             <label class="block text-xs font-black t-sub mb-1.5">وصف البطولة</label>
                             <textarea id="t-desc" rows="2" class="w-full p-3 border rounded-xl text-sm resize-none" placeholder="معلومات إضافية..."></textarea>
@@ -307,7 +338,6 @@
                             <option value="female">أنثى</option>
                         </select>
                     </div>
-                    <!-- فلاتر الوزن والطول الجديدة -->
                     <div>
                         <label class="block text-xs font-black text-amber-600 mb-1">الوزن الدقيق (من)</label>
                         <input type="number" step="0.1" id="pf-weight-from" class="w-full p-2.5 border rounded-lg text-xs surface" placeholder="كغم (مثال: 50)">
@@ -334,6 +364,8 @@
                 </div>
                 <div class="flex flex-wrap gap-2 mt-4 pt-4 border-t" style="border-color:var(--border)">
                     <button onclick="filterPlayers()" class="bg-slate-700 hover:bg-slate-800 text-white font-black py-2 px-6 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-search"></i> تطبيق الفلاتر وعرض</button>
+                    <!-- أضفنا زر طباعة الهويات هنا -->
+                    <button onclick="exportIDCards()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-id-card"></i> طباعة الهويات (ID)</button>
                     <button onclick="exportAdminPDF()" class="bg-red-600 hover:bg-red-700 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-file-pdf"></i> PDF</button>
                     <button onclick="exportCSV()" class="bg-green-600 hover:bg-green-700 text-white font-black py-2 px-4 rounded-lg text-xs flex items-center gap-1.5 transition"><i class="fas fa-file-excel"></i> CSV</button>
                 </div>
@@ -428,6 +460,21 @@
     </div>
 </div>
 
+<!-- حاوية الهويات المخفية للطباعة -->
+<div id="id-cards-container"></div>
+
+<script>
+window.previewTLogo = (input) => {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('t-logo-preview').innerHTML = `<img src="${e.target.result}" class="w-full h-full object-contain">`;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+};
+</script>
+
 <script type="module">
 import { db, auth } from './firebase-config.js';
 import {
@@ -458,20 +505,39 @@ window.showSection = function(name){
 };
 
 /* ── State ── */
-let currentUser=null, allPlayers=[], usersMap={}, tournamentsMap={};
-window.lastFilteredPlayers = []; // مصفوفة لتخزين اللاعبين المفصلين للتصدير المباشر
+let currentUser=null, allPlayers=[], usersMap={};
+window.tournamentsMap = {};
+window.lastFilteredPlayers = []; 
 
 /* ── Auth ── */
 onAuthStateChanged(auth, async(user)=>{
     if(!user){window.location.href="index.html";return;}
     const snap=await getDoc(doc(db,"users",user.uid));
-    if(!snap.exists()||snap.data().role!=='super_admin'){alert("غير مصرح");await signOut(auth);window.location.href="index.html";return;}
+    if(!snap.exists()||snap.data().role!=='super_admin'){
+        await Swal.fire({ icon: 'error', title: 'غير مصرح!', text: 'ليست لديك صلاحيات المسؤول.', confirmButtonColor: '#d97706' });
+        await signOut(auth);window.location.href="index.html";return;
+    }
     currentUser=user;
     document.getElementById('adminEmailDisplay').textContent=user.email;
     await loadAll();
 });
 
-async function doLogout(){ if(confirm("تسجيل الخروج؟")){await signOut(auth);window.location.href='index.html';} }
+async function doLogout(){ 
+    const result = await Swal.fire({
+        title: 'تسجيل الخروج؟',
+        text: "هل تريد إنهاء الجلسة الحالية؟",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'نعم، خروج',
+        cancelButtonText: 'إلغاء'
+    });
+    if(result.isConfirmed) {
+        await signOut(auth);
+        window.location.href='index.html';
+    }
+}
 document.getElementById('logoutBtn').addEventListener('click',doLogout);
 document.getElementById('mobileLogoutBtn').addEventListener('click',doLogout);
 
@@ -508,12 +574,12 @@ async function loadTournaments(){
         const pfSel=document.getElementById('pf-tournament');
         finSel.innerHTML='<option value="">جميع البطولات</option>';
         pfSel.innerHTML='<option value="">الكل</option>';
-        tournamentsMap={};
+        window.tournamentsMap={};
         let html='',ovHtml='';
         if(snap.empty){html='<p class="t-sub text-xs text-center py-6">لا توجد بطولات بعد</p>';}
         snap.forEach(d=>{
             const t=d.data(),tid=d.id;
-            tournamentsMap[tid]=t;
+            window.tournamentsMap[tid]=t;
             const now=new Date();
             const deadline=t.deadline?new Date(t.deadline):null;
             const isOpen=deadline&&now<deadline;
@@ -554,15 +620,29 @@ document.getElementById('createTournamentBtn').addEventListener('click', async()
     const name=document.getElementById('t-name').value.trim();
     const deadline=document.getElementById('t-deadline').value;
     const startDate=document.getElementById('t-startdate').value;
-    const endDate=document.getElementById('t-enddate').value;
-    const weighinDate=document.getElementById('t-weighin').value;
-    if(!name||!deadline||!startDate){alert("الرجاء تعبئة الحقول الأساسية!");return;}
+    if(!name||!deadline||!startDate){
+        Swal.fire({ icon: 'warning', title: 'بيانات ناقصة', text: 'الرجاء تعبئة اسم البطولة وتاريخ البدء وموعد التسجيل.', confirmButtonColor: '#d97706' });
+        return;
+    }
     const btn=document.getElementById('createTournamentBtn');
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+    
+    // جلب الشعار إن وُجد
+    const logoInput = document.getElementById('t-logo-input');
+    let tournamentLogoBase64 = "";
+    if (logoInput.files[0]) {
+        tournamentLogoBase64 = await new Promise(res => {
+            const r = new FileReader();
+            r.onload = e => res(e.target.result);
+            r.readAsDataURL(logoInput.files[0]);
+        });
+    }
+
     try{
         await addDoc(collection(db,"tournaments"),{
             name,location:document.getElementById('t-location').value,
-            weighinDate,startDate,endDate,deadline,
+            weighinDate:document.getElementById('t-weighin').value,
+            startDate,endDate:document.getElementById('t-enddate').value,deadline,
             feeColor:parseInt(document.getElementById('t-fee-color').value)||20,
             feeBlack:parseInt(document.getElementById('t-fee-black').value)||25,
             description:document.getElementById('t-desc').value,
@@ -570,22 +650,35 @@ document.getElementById('createTournamentBtn').addEventListener('click', async()
             requireDob:document.getElementById('t-req-dob').checked,
             requireLevel:document.getElementById('t-req-level').checked,
             requireBirthCert:document.getElementById('t-req-birthcert').checked,
+            tournamentLogo: tournamentLogoBase64,
             createdBy:currentUser.uid, createdAt:serverTimestamp()
         });
-        alert("✅ تم إنشاء البطولة!");
-        ['t-name','t-location','t-desc'].forEach(id=>document.getElementById(id).value='');
-        ['t-weighin','t-startdate','t-enddate','t-deadline'].forEach(id=>document.getElementById(id).value='');
+        Swal.fire({ icon: 'success', title: 'تم!', text: 'تم إنشاء البطولة بنجاح.', timer: 2000, showConfirmButton: false });
+        ['t-name','t-location','t-desc','t-weighin','t-startdate','t-enddate','t-deadline'].forEach(id=>document.getElementById(id).value='');
         ['t-req-height','t-req-dob','t-req-level','t-req-birthcert'].forEach(id=>document.getElementById(id).checked=false);
-        document.getElementById('t-fee-color').value=20; document.getElementById('t-fee-black').value=25;
+        document.getElementById('t-logo-preview').innerHTML = '<i class="fas fa-image text-2xl"></i>';
+        document.getElementById('t-logo-input').value = '';
         loadTournaments(); loadStats();
-    }catch(e){alert("❌ "+e.message);}
+    }catch(e){ Swal.fire({ icon: 'error', title: 'فشل الإنشاء', text: e.message }); }
     finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-trophy"></i> إنشاء البطولة';}
 });
 
 window.deleteTournament = async(id)=>{
-    if(!confirm("حذف هذه البطولة؟")) return;
-    await deleteDoc(doc(db,"tournaments",id));
-    loadTournaments();
+    const result = await Swal.fire({
+        title: 'حذف البطولة؟',
+        text: "سيتم حذف البطولة وجميع البيانات المرتبطة بها نهائياً!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'نعم، احذفها',
+        cancelButtonText: 'إلغاء'
+    });
+    if(result.isConfirmed) {
+        await deleteDoc(doc(db,"tournaments",id));
+        Swal.fire('تم الحذف!', 'تمت إزالة البطولة من النظام.', 'success');
+        loadTournaments();
+    }
 };
 
 /* ── Captains ── */
@@ -595,7 +688,6 @@ async function loadCaptains(){
             getDocs(query(collection(db,"users"),where("role","==","captain"),where("approved","==",false))),
             getDocs(query(collection(db,"users"),where("role","==","captain"),where("approved","==",true)))
         ]);
-        // pending
         let html='';
         pendingSnap.forEach(d=>{
             const u=d.data();
@@ -608,59 +700,59 @@ async function loadCaptains(){
             </div>`;
         });
         document.getElementById('ctab-content-pending').innerHTML=html||'<p class="t-sub text-center text-xs py-8">لا توجد طلبات معلقة ✅</p>';
-        // approved
         usersMap={};
-        let aHtml='<div class="overflow-x-auto"><table class="w-full text-right text-xs" style="min-width:400px"><thead class="surface2 border-b"><tr><th class="p-3 font-black t-sub">النادي</th><th class="p-3 font-black t-sub">الكابتن</th><th class="p-3 font-black t-sub">الإيميل</th><th class="p-3 font-black t-sub text-center">اللاعبون</th><th class="p-3 font-black t-sub text-center">إلغاء</th></tr></thead><tbody class="divide-y" style="border-color:var(--border)">';
+        let aHtml='<div class="overflow-x-auto"><table class="w-full text-right text-xs" style="min-width:400px"><thead class="surface2 border-b"><tr><th class="p-3 font-black t-sub">النادي</th><th class="p-3 font-black t-sub">الكابتن</th><th class="p-3 font-black t-sub text-center">اللاعبون</th><th class="p-3 font-black t-sub text-center">إلغاء</th></tr></thead><tbody class="divide-y" style="border-color:var(--border)">';
         approvedSnap.forEach(d=>{
             const u=d.data(); usersMap[d.id]=u;
             aHtml+=`<tr class="hover:surface2 transition">
                 <td class="p-3 font-black t-main">${u.clubName}</td>
                 <td class="p-3 t-sub">${u.captainName||'-'}</td>
-                <td class="p-3 t-sub">${u.email}</td>
                 <td class="p-3 text-center"><span id="badge-${d.id}" class="bg-amber-100 text-amber-700 font-black px-2 py-0.5 rounded-full">...</span></td>
                 <td class="p-3 text-center"><button onclick="revokeCaptain('${d.id}')" class="text-orange-500 hover:text-orange-700 text-[10px] font-black border border-orange-300 px-2 py-1 rounded transition">إلغاء</button></td>
             </tr>`;
         });
         aHtml+='</tbody></table></div>';
         document.getElementById('ctab-content-approved').innerHTML=approvedSnap.size>0?aHtml:'<p class="t-sub text-center text-xs py-8">لا توجد أندية معتمدة</p>';
-        // badge counts
         const playersSnap=await getDocs(collection(db,"players"));
         const counts={};
         playersSnap.forEach(d=>{ const cid=d.data().captainId; counts[cid]=(counts[cid]||0)+1; });
         Object.keys(usersMap).forEach(uid=>{ const el=document.getElementById('badge-'+uid); if(el) el.textContent=(counts[uid]||0)+' لاعب'; });
-        // populate club filter
         const pfClub=document.getElementById('pf-club');
         pfClub.innerHTML='<option value="">الكل</option>';
         approvedSnap.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.textContent=d.data().clubName; pfClub.appendChild(o); });
     }catch(e){console.error(e);}
 }
 
-window.switchCaptainTab = function(tab){
+window.switchCaptainTab = (tab)=>{
     document.getElementById('ctab-content-pending').classList.toggle('hidden',tab!=='pending');
     document.getElementById('ctab-content-approved').classList.toggle('hidden',tab!=='approved');
     document.getElementById('ctab-pending').classList.toggle('active',tab==='pending');
     document.getElementById('ctab-approved').classList.toggle('active',tab==='approved');
 };
-window.approveCaptain = async(uid)=>{ await updateDoc(doc(db,"users",uid),{approved:true}); loadCaptains(); loadStats(); };
-window.rejectCaptain  = async(uid)=>{ if(!confirm("رفض وحذف الطلب؟")) return; await deleteDoc(doc(db,"users",uid)); loadCaptains(); loadStats(); };
-window.revokeCaptain  = async(uid)=>{ if(!confirm("إلغاء الموافقة؟")) return; await updateDoc(doc(db,"users",uid),{approved:false}); loadCaptains(); };
+window.approveCaptain = async(uid)=>{ 
+    await updateDoc(doc(db,"users",uid),{approved:true}); 
+    Swal.fire({ icon: 'success', title: 'تم التفعيل', text: 'تمت الموافقة على النادي بنجاح.', timer: 1500, showConfirmButton: false });
+    loadCaptains(); loadStats(); 
+};
+window.rejectCaptain = async(uid)=>{ 
+    const res = await Swal.fire({ title: 'رفض الطلب؟', text: "سيتم حذف هذا الطلب نهائياً.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc2626', confirmButtonText: 'نعم، ارفض' });
+    if(res.isConfirmed) { await deleteDoc(doc(db,"users",uid)); loadCaptains(); loadStats(); }
+};
+window.revokeCaptain = async(uid)=>{ 
+    const res = await Swal.fire({ title: 'إلغاء الاعتماد؟', text: "لن يتمكن الكابتن من دخول حسابه حتى توافق عليه مرة أخرى.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#f97316', confirmButtonText: 'نعم، إلغاء' });
+    if(res.isConfirmed) { await updateDoc(doc(db,"users",uid),{approved:false}); loadCaptains(); }
+};
 
 /* ── Finance ── */
 window.loadFinanceData = async function(){
     const filterTid=document.getElementById('financeFilter').value;
     try{
-        const [playersSnap,usersSnap]=await Promise.all([
-            getDocs(collection(db,"players")),
-            getDocs(query(collection(db,"users"),where("role","==","captain")))
-        ]);
-        const umap={};
-        usersSnap.forEach(d=>umap[d.id]=d.data());
+        const [playersSnap,usersSnap]=await Promise.all([ getDocs(collection(db,"players")), getDocs(query(collection(db,"users"),where("role","==","captain"))) ]);
+        const umap={}; usersSnap.forEach(d=>umap[d.id]=d.data());
         const clubs={};
         playersSnap.forEach(d=>{
-            const p=d.data();
-            if(filterTid&&p.tournamentId!==filterTid) return;
-            const cid=p.captainId;
-            const fee=p.fee||(p.belt==='black'?25:20);
+            const p=d.data(); if(filterTid&&p.tournamentId!==filterTid) return;
+            const cid=p.captainId; const fee=p.fee||(p.belt==='black'?25:20);
             if(!clubs[cid]) clubs[cid]={name:umap[cid]?.clubName||p.clubName||'نادي',captain:umap[cid]?.captainName||'-',captainId:cid,players:0,amount:0,paid:p.paid||false};
             clubs[cid].players++; clubs[cid].amount+=fee;
             if(!p.paid) clubs[cid].paid=false;
@@ -680,9 +772,7 @@ window.loadFinanceData = async function(){
                 </label>
             </td>
             <td class="p-3 text-center">
-                <button onclick="openExtModal('${cid}','${c.name}')" class="text-blue-500 hover:text-blue-700 border border-blue-300 px-2 py-1 rounded text-[10px] font-black transition hover:bg-blue-50">
-                    <i class="fas fa-clock ml-1"></i>تمديد
-                </button>
+                <button onclick="openExtModal('${cid}','${c.name}')" class="text-blue-500 hover:text-blue-700 border border-blue-300 px-2 py-1 rounded text-[10px] font-black transition hover:bg-blue-50"><i class="fas fa-clock ml-1"></i>تمديد</button>
             </td>
         </tr>`).join('');
     }catch(e){console.error(e);}
@@ -695,17 +785,18 @@ window.togglePayment = async(captainId,isPaid,checkbox)=>{
         await Promise.all(snap.docs.map(d=>updateDoc(doc(db,"players",d.id),{paid:isPaid})));
         label.textContent=isPaid?'مدفوع ✓':'معلق';
         label.className=`font-black text-[10px] ${isPaid?'text-green-600':'text-red-500'}`;
-    }catch(e){alert("خطأ: "+e.message); checkbox.checked=!isPaid;}
+        Swal.fire({ icon: 'success', title: isPaid ? 'تم التحصيل' : 'تم الإلغاء', timer: 1000, showConfirmButton: false });
+    }catch(e){ checkbox.checked=!isPaid; }
 };
 
-/* ── Extension Modal ── */
-window.openExtModal = function(captainId,clubName){
-    document.getElementById('extCaptainId').value=captainId;
-    document.getElementById('extClubName').textContent=clubName;
+/* ── Extension ── */
+window.openExtModal = (cid,name)=>{
+    document.getElementById('extCaptainId').value=cid;
+    document.getElementById('extClubName').textContent=name;
     document.getElementById('extModal').style.display='flex';
     updateExtPreview();
 };
-window.closeExtModal = ()=>{ document.getElementById('extModal').style.display='none'; };
+window.closeExtModal = ()=> document.getElementById('extModal').style.display='none';
 ['extAmount','extUnit'].forEach(id=>document.getElementById(id).addEventListener('input',updateExtPreview));
 function updateExtPreview(){
     const amount=parseInt(document.getElementById('extAmount').value)||0;
@@ -715,71 +806,37 @@ function updateExtPreview(){
     document.getElementById('extPreview').textContent=amount?deadline.toLocaleString('ar-EG'):'...';
 }
 window.applyExtension = async()=>{
-    const captainId=document.getElementById('extCaptainId').value;
-    const amount=parseInt(document.getElementById('extAmount').value);
-    const unit=document.getElementById('extUnit').value;
-    if(!amount){alert("الرجاء إدخال المدة!");return;}
-    const ms={minutes:60000,hours:3600000,days:86400000}[unit];
-    const newDeadline=new Date(Date.now()+amount*ms).toISOString();
-    const btn=document.getElementById('extBtn');
-    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التطبيق...';
+    const cid=document.getElementById('extCaptainId').value, amount=parseInt(document.getElementById('extAmount').value), unit=document.getElementById('extUnit').value;
+    if(!amount) return;
+    const ms={minutes:60000,hours:3600000,days:86400000}[unit], newDeadline=new Date(Date.now()+amount*ms).toISOString();
     try{
-        await updateDoc(doc(db,"users",captainId),{extensionDeadline:newDeadline});
-        alert("✅ تم تمديد التسجيل بنجاح!");
+        await updateDoc(doc(db,"users",cid),{extensionDeadline:newDeadline});
+        Swal.fire({ icon: 'success', title: 'تم التمديد!', text: 'تم منح النادي وقتاً إضافياً للتسجيل.', timer: 2000, showConfirmButton: false });
         closeExtModal();
-    }catch(e){alert("❌ "+e.message);}
-    finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-check"></i> تطبيق التمديد';}
+    }catch(e){ Swal.fire({ icon: 'error', title: 'خطأ', text: e.message }); }
 };
 
-/* ── Players Filter ── */
-function populateFilters(){ /* تعبأ من loadTournaments و loadCaptains */ }
-
+/* ── Players ── */
 window.filterPlayers = async function(){
-    const tid=document.getElementById('pf-tournament').value;
-    const cid=document.getElementById('pf-club').value;
-    const cat=document.getElementById('pf-category').value;
-    const belt=document.getElementById('pf-belt').value;
-    const gender=document.getElementById('pf-gender').value;
-    const sortBy=document.getElementById('pf-sort-by').value;
-    const sortDir=document.getElementById('pf-sort').value;
-    const weightFrom=parseFloat(document.getElementById('pf-weight-from').value);
-    const weightTo=parseFloat(document.getElementById('pf-weight-to').value);
-
+    const tid=document.getElementById('pf-tournament').value, cid=document.getElementById('pf-club').value, cat=document.getElementById('pf-category').value, belt=document.getElementById('pf-belt').value, gender=document.getElementById('pf-gender').value, sortBy=document.getElementById('pf-sort-by').value, sortDir=document.getElementById('pf-sort').value, weightFrom=parseFloat(document.getElementById('pf-weight-from').value), weightTo=parseFloat(document.getElementById('pf-weight-to').value);
     const tbody=document.getElementById('adminPlayersBody');
     tbody.innerHTML='<tr><td colspan="9" class="p-4 text-center"><i class="fas fa-spinner fa-spin text-amber-500"></i></td></tr>';
     try{
         const snap=await getDocs(collection(db,"players"));
-        let players=[];
-        snap.forEach(d=>players.push({id:d.id,...d.data()}));
-        
+        let players=[]; snap.forEach(d=>players.push({id:d.id,...d.data()}));
         if(tid)    players=players.filter(p=>p.tournamentId===tid);
         if(cid)    players=players.filter(p=>p.captainId===cid);
         if(cat)    players=players.filter(p=>p.category===cat);
         if(belt)   players=players.filter(p=>p.belt===belt);
         if(gender) players=players.filter(p=>p.gender===gender);
-
-        // فلترة الوزن الدقيق
         if(!isNaN(weightFrom)) players = players.filter(p => (parseFloat(p.exactWeight) || 0) >= weightFrom);
         if(!isNaN(weightTo))   players = players.filter(p => (parseFloat(p.exactWeight) || 0) <= weightTo);
-
-        // الترتيب
         players.sort((a,b)=>{
-            let valA, valB;
-            if(sortBy === 'exactWeight') {
-                valA = parseFloat(a.exactWeight) || 0;
-                valB = parseFloat(b.exactWeight) || 0;
-            } else if(sortBy === 'height') {
-                valA = parseInt(a.height) || 0;
-                valB = parseInt(b.height) || 0;
-            } else { // weight category
-                valA = parseFloat((a.weight||'0').replace(/[^0-9.]/g,''));
-                valB = parseFloat((b.weight||'0').replace(/[^0-9.]/g,''));
-            }
+            let valA = sortBy === 'exactWeight' ? (parseFloat(a.exactWeight) || 0) : (sortBy === 'height' ? (parseInt(a.height) || 0) : parseFloat((a.weight||'0').replace(/[^0-9.]/g,'')));
+            let valB = sortBy === 'exactWeight' ? (parseFloat(b.exactWeight) || 0) : (sortBy === 'height' ? (parseInt(b.height) || 0) : parseFloat((b.weight||'0').replace(/[^0-9.]/g,'')));
             return sortDir==='asc' ? valA - valB : valB - valA;
         });
-        
         window.lastFilteredPlayers = players;
-
         if(!players.length){tbody.innerHTML='<tr><td colspan="9" class="p-8 text-center t-sub">لا توجد نتائج</td></tr>';return;}
         tbody.innerHTML=players.map((p,i)=>`
         <tr class="hover:surface2 transition text-xs">
@@ -796,114 +853,105 @@ window.filterPlayers = async function(){
     }catch(e){console.error(e);}
 };
 
-/* ── Export Admin PDF ── */
+/* ── PDF, CSV & ID CARDS ── */
 window.exportAdminPDF = async function(){
-    const btn = document.querySelector('button[onclick="exportAdminPDF()"]');
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التصدير...';
-    btn.disabled = true;
-
-    await filterPlayers(); 
-    const playersToExport = window.lastFilteredPlayers || [];
-
-    if (playersToExport.length === 0) {
-        alert("لا يوجد بيانات لتصديرها");
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-        return;
-    }
-
-    let rowsHtml = '';
-    playersToExport.forEach((p, i) => {
-        const clubName = usersMap[p.captainId]?.clubName || p.clubName || '-';
-        const beltBadge = p.belt === 'black' 
-            ? `<span style="background-color: #0f172a; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 11px;">أسود</span>`
-            : `<span style="background-color: #dbeafe; color: #1d4ed8; padding: 4px 10px; border-radius: 12px; font-size: 11px;">ملون</span>`;
-        const exactW = p.exactWeight ? p.exactWeight + ' كغم' : '-';
-        const h = p.height ? p.height + ' سم' : '-';
-        const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
-
-        rowsHtml += `
-            <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0; text-align: center; color: #0f172a;">
-                <td style="padding: 8px;">${i + 1}</td>
-                <td style="padding: 8px; font-weight: 900;">${p.name}</td>
-                <td style="padding: 8px; font-weight: bold;">${clubName}</td>
-                <td style="padding: 8px;">${p.category}</td>
-                <td style="padding: 8px; font-weight: bold; color: #d97706;" dir="ltr">${p.weight} كغم</td>
-                <td style="padding: 8px; font-weight: bold; color: #2563eb;" dir="ltr">${exactW}</td>
-                <td style="padding: 8px; font-weight: bold; color: #16a34a;" dir="ltr">${h}</td>
-                <td style="padding: 8px;">${beltBadge}</td>
-                <td style="padding: 8px;">${p.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
-            </tr>
-        `;
-    });
-
+    const btn = document.querySelector('button[onclick="exportAdminPDF()"]'), originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التصدير...'; btn.disabled = true;
+    await filterPlayers(); const playersToExport = window.lastFilteredPlayers || [];
+    if (!playersToExport.length) { Swal.fire('لا توجد بيانات', 'قم بفلترة اللاعبين أولاً.', 'info'); btn.innerHTML = originalHtml; btn.disabled = false; return; }
+    let rowsHtml = playersToExport.map((p, i) => `
+        <tr style="background-color: ${i % 2 === 0 ? '#f8fafc' : '#ffffff'}; border-bottom: 1px solid #e2e8f0; text-align: center; color: #0f172a;">
+            <td style="padding: 8px;">${i + 1}</td>
+            <td style="padding: 8px; font-weight: 900;">${p.name}</td>
+            <td style="padding: 8px;">${usersMap[p.captainId]?.clubName || p.clubName || '-'}</td>
+            <td style="padding: 8px;">${p.category}</td>
+            <td style="padding: 8px; font-weight: bold; color: #d97706;">${p.weight} كغم</td>
+            <td style="padding: 8px; font-weight: bold; color: #2563eb;">${p.exactWeight ? p.exactWeight + ' كغم' : '-'}</td>
+            <td style="padding: 8px; font-weight: bold; color: #16a34a;">${p.height ? p.height + ' سم' : '-'}</td>
+            <td style="padding: 8px;">${p.belt === 'black' ? 'أسود' : 'ملون'}</td>
+            <td style="padding: 8px;">${p.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
+        </tr>`).join('');
     const printContainer = document.createElement('div');
     printContainer.innerHTML = `
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-            * { font-family: 'Cairo', sans-serif !important; }
-        </style>
+        <style>@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap'); * { font-family: 'Cairo', sans-serif !important; }</style>
         <div style="width: 297mm; padding: 20px; background-color: #ffffff; direction: rtl;">
             <div style="background-color: #0f172a; border-bottom: 5px solid #d97706; padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
                 <h1 style="margin: 0; font-size: 26px; font-weight: 900;">تسجيل البطولات والاعبين — تقرير الإدارة</h1>
-                <p style="margin: 5px 0 0 0; font-size: 14px; color: #cbd5e1;">Jordan Taekwondo Federation - Players Report</p>
-                <p style="margin: 10px 0 0 0; font-size: 13px; color: #fbbf24; font-weight: bold;">${new Date().toLocaleString('ar-EG')}</p>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #fbbf24; font-weight: bold;">تاريخ التصدير: ${new Date().toLocaleString('ar-EG')}</p>
             </div>
             <table style="width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 13px; color: #000000;">
-                <thead>
-                    <tr style="background-color: #d97706; color: white;">
-                        <th style="padding: 10px; border: 1px solid #b45309;">#</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">اللاعب</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">النادي</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الفئة</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الوزن</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الوزن الدقيق</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الطول</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الحزام</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الجنس</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rowsHtml}
-                </tbody>
+                <thead><tr style="background-color: #d97706; color: white;">
+                    <th style="padding: 10px; border: 1px solid #b45309;">#</th><th style="padding: 10px; border: 1px solid #b45309;">اللاعب</th><th style="padding: 10px; border: 1px solid #b45309;">النادي</th><th style="padding: 10px; border: 1px solid #b45309;">الفئة</th><th style="padding: 10px; border: 1px solid #b45309;">الوزن</th><th style="padding: 10px; border: 1px solid #b45309;">الوزن الدقيق</th><th style="padding: 10px; border: 1px solid #b45309;">الطول</th><th style="padding: 10px; border: 1px solid #b45309;">الحزام</th><th style="padding: 10px; border: 1px solid #b45309;">الجنس</th>
+                </tr></thead>
+                <tbody>${rowsHtml}</tbody>
             </table>
-        </div>
-    `;
-
-    const opt = {
-        margin:       5,
-        filename:     `players-report-${new Date().toISOString().slice(0,10)}.pdf`,
-        image:        { type: 'jpeg', quality: 1 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-    };
-
-    html2pdf().set(opt).from(printContainer).save().then(() => {
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-    });
+        </div>`;
+    const opt = { margin: 5, filename: `admin-report-${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } };
+    html2pdf().set(opt).from(printContainer).save().then(() => { btn.innerHTML = originalHtml; btn.disabled = false; });
 };
 
-/* ── Export CSV ── */
 window.exportCSV = async function(){
-    await filterPlayers();
-    const playersToExport = window.lastFilteredPlayers || [];
-    const rows = [['#','اللاعب','النادي','الفئة','الوزن','الوزن الدقيق','الطول','الحزام','الجنس']];
-    
-    playersToExport.forEach((p, i) => {
-        const clubName = usersMap[p.captainId]?.clubName || p.clubName || '-';
-        const exactW = p.exactWeight ? p.exactWeight + ' كغم' : '-';
-        const h = p.height ? p.height + ' سم' : '-';
-        const beltText = p.belt === 'black' ? 'أسود' : 'ملون';
-        const genderText = p.gender === 'male' ? 'ذكر' : 'أنثى';
-        rows.push([i+1, p.name, clubName, p.category, p.weight, exactW, h, beltText, genderText]);
-    });
-
+    await filterPlayers(); const players = window.lastFilteredPlayers || [];
+    if (!players.length) return;
+    const rows = [['#','اللاعب','النادي','الفئة','الوزن','الوزن الدقيق','الطول','الحزام','الجنس'], ...players.map((p, i) => [i+1, p.name, usersMap[p.captainId]?.clubName || p.clubName || '-', p.category, p.weight, p.exactWeight || '-', p.height || '-', p.belt === 'black' ? 'أسود' : 'ملون', p.gender === 'male' ? 'ذكر' : 'أنثى'])];
     const csv = rows.map(r => r.join(',')).join('\n');
     const blob = new Blob(['\uFEFF'+csv], {type: 'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `players-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `players-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+};
+
+window.exportIDCards = async function() {
+    const playersToPrint = window.lastFilteredPlayers || [];
+    if (playersToPrint.length === 0) {
+        Swal.fire('تنبيه', 'لا يوجد لاعبون لطباعة هوياتهم. قم بتطبيق الفلاتر أولاً.', 'info');
+        return;
+    }
+
+    const container = document.getElementById('id-cards-container');
+    container.innerHTML = '';
+    
+    Swal.fire({ title: 'جاري تجهيز الهويات...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    playersToPrint.forEach(p => {
+        const tInfo = window.tournamentsMap[p.tournamentId] || {};
+        const logoSrc = tInfo.tournamentLogo || 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Taekwondo_pictogram.svg/1200px-Taekwondo_pictogram.svg.png'; // شعار افتراضي
+        
+        const card = document.createElement('div');
+        card.className = 'id-card';
+        card.innerHTML = `
+            <div class="id-header">${tInfo.name || 'بطولة التايكواندو'}</div>
+            <img src="${logoSrc}" class="id-logo" onerror="this.style.display='none'">
+            <div class="id-name">${p.name}</div>
+            <div class="id-club">${usersMap[p.captainId]?.clubName || p.clubName || '-'}</div>
+            <div class="id-qr" id="qr-${p.id}"></div>
+            <div class="id-details">
+                <div><b>الفئة:</b> ${p.category}</div>
+                <div><b>الوزن:</b> <span dir="ltr">${p.weight} kg</span></div>
+                <div><b>الحزام:</b> ${p.belt === 'black' ? 'أسود' : 'ملون'}</div>
+                <div><b>سنة الميلاد:</b> ${p.birthYear}</div>
+            </div>
+            <div class="id-footer"></div>
+        `;
+        container.appendChild(card);
+
+        new QRCode(card.querySelector(`#qr-${p.id}`), {
+            text: `https://tkd-registration.web.app/verify?pid=${p.id}`,
+            width: 80, height: 80
+        });
+    });
+
+    setTimeout(() => {
+        const opt = {
+            margin: 5,
+            filename: `ID-Cards-${new Date().getTime()}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(container).save().then(() => {
+            container.innerHTML = '';
+            Swal.close();
+        });
+    }, 500);
 };
 
 /* ── Admins ── */
@@ -916,27 +964,20 @@ async function loadAdmins(){
 }
 
 document.getElementById('createAdminBtn').addEventListener('click', async()=>{
-    const name=document.getElementById('newAdminName').value.trim();
-    const email=document.getElementById('newAdminEmail').value.trim();
-    const pass=document.getElementById('newAdminPass').value;
-    const alertDiv=document.getElementById('adminCreateAlert');
-    if(!name||!email||!pass){alertDiv.className='p-3 rounded-xl text-xs font-bold bg-red-100 text-red-700';alertDiv.textContent='الرجاء تعبئة كافة الحقول!';alertDiv.classList.remove('hidden');return;}
-    const btn=document.getElementById('createAdminBtn');
-    btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+    const name=document.getElementById('newAdminName').value.trim(), email=document.getElementById('newAdminEmail').value.trim(), pass=document.getElementById('newAdminPass').value;
+    if(!name||!email||!pass){ Swal.fire({ icon: 'warning', text: 'يرجى تعبئة كافة حقول المنظم الجديد.' }); return; }
+    const btn=document.getElementById('createAdminBtn'); btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
     try{
         const cred=await createUserWithEmailAndPassword(auth,email,pass);
         await setDoc(doc(db,"users",cred.user.uid),{email,adminName:name,role:"super_admin",approved:true,createdAt:serverTimestamp()});
-        alertDiv.className='p-3 rounded-xl text-xs font-bold bg-green-100 text-green-700';
-        alertDiv.textContent='✅ تم إنشاء حساب المنظم: '+email;
-        alertDiv.classList.remove('hidden');
+        Swal.fire('تم بنجاح!', 'تم إنشاء حساب منظم جديد بصلاحيات كاملة.', 'success');
         document.getElementById('newAdminName').value=''; document.getElementById('newAdminEmail').value=''; document.getElementById('newAdminPass').value='';
         loadAdmins();
-    }catch(e){
-        alertDiv.className='p-3 rounded-xl text-xs font-bold bg-red-100 text-red-700';
-        alertDiv.textContent='❌ '+(e.code==='auth/email-already-in-use'?'هذا الإيميل مستخدم مسبقاً':e.message);
-        alertDiv.classList.remove('hidden');
-    }finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-user-plus"></i> إنشاء حساب المنظم';}
+    }catch(e){ Swal.fire('فشل!', e.message, 'error'); }
+    finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-user-plus"></i> إنشاء حساب المنظم';}
 });
+
+function populateFilters(){ /* مُفعلة تلقائياً عبر التحميل */ }
 </script>
 
 <script type="module">

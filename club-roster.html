@@ -7,79 +7,52 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- مكتبة الـ QR Code -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- مكتبة SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
         :root {
-            --bg: #f1f5f9;
-            --surface: #ffffff;
-            --surface2: #f8fafc;
-            --border: #e2e8f0;
-            --text: #0f172a;
-            --text2: #64748b;
-            --sidebar: #0f172a;
-            --sidebar-text: #cbd5e1;
-            --accent: #d97706;
-            --accent-dark: #b45309;
+            --bg: #f1f5f9; --surface: #ffffff; --surface2: #f8fafc; --border: #e2e8f0;
+            --text: #0f172a; --text2: #64748b; --sidebar: #0f172a; --sidebar-text: #cbd5e1;
+            --accent: #d97706; --accent-dark: #b45309;
         }
         .dark {
-            --bg: #0a0f1e;
-            --surface: #111827;
-            --surface2: #1f2937;
-            --border: #374151;
-            --text: #f1f5f9;
-            --text2: #94a3b8;
-            --sidebar: #060c18;
-            --sidebar-text: #94a3b8;
+            --bg: #0a0f1e; --surface: #111827; --surface2: #1f2937; --border: #374151;
+            --text: #f1f5f9; --text2: #94a3b8; --sidebar: #060c18; --sidebar-text: #94a3b8;
         }
 
         * { transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
         body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); }
-
         .surface  { background: var(--surface);  border-color: var(--border); }
         .surface2 { background: var(--surface2); border-color: var(--border); }
         .t-main   { color: var(--text); }
         .t-sub    { color: var(--text2); }
         .sidebar  { background: var(--sidebar); }
-
-        /* Mobile sidebar */
         #mobileSidebar { transform: translateX(100%); transition: transform 0.3s ease; background: var(--sidebar); }
         #mobileSidebar.open { transform: translateX(0); }
         #sidebarOverlay { display:none; }
         #sidebarOverlay.open { display:block; }
-
-        /* Modal */
         #editModal { display:none; }
         #editModal.open { display:flex; }
-
-        input, select, textarea {
-            background: var(--surface2);
-            border-color: var(--border);
-            color: var(--text);
-        }
-        input:focus, select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(217,119,6,0.15);
-            outline: none;
-        }
-
-        /* Table hover */
+        input, select, textarea { background: var(--surface2); border-color: var(--border); color: var(--text); }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(217,119,6,0.15); outline: none; }
         .player-row:hover { background: var(--surface2); }
+        .pdf-btn { background: linear-gradient(90deg, #dc2626, #b91c1c, #ef4444, #b91c1c, #dc2626); background-size: 200% auto; }
+        .swal2-popup { font-family: 'Cairo', sans-serif !important; border-radius: 1.25rem !important; }
 
-        /* Badge animation */
-        @keyframes badgePop { 0%{transform:scale(0.8)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
-        .badge-pop { animation: badgePop 0.4s ease; }
-
-        /* PDF button shimmer */
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
-        .pdf-btn {
-            background: linear-gradient(90deg, #dc2626, #b91c1c, #ef4444, #b91c1c, #dc2626);
-            background-size: 200% auto;
-        }
-        .pdf-btn:hover { animation: shimmer 1.5s linear infinite; }
+        /* ستايل الهويات المخفي */
+        #id-cards-container { position: absolute; left: -9999px; top: 0; width: 210mm; background: #fff; }
+        .id-card { width: 85mm; height: 115mm; border: 2px solid #000; position: relative; background: #fff; color: #000; padding: 10px; box-sizing: border-box; text-align: center; display: inline-block; margin: 5px; border-radius: 10px; overflow: hidden; page-break-inside: avoid; }
+        .id-header { background: #0f172a; color: #fff; padding: 5px; margin: -10px -10px 10px -10px; font-weight: bold; font-size: 14px;}
+        .id-logo { height: 50px; width: auto; object-fit: contain; margin: 5px auto; }
+        .id-name { font-size: 18px; font-weight: 900; margin: 10px 0; border-bottom: 2px solid #d97706; padding-bottom: 5px;}
+        .id-club { font-size: 14px; font-weight: bold; color: #444; }
+        .id-qr { margin: 10px auto; display: flex; justify-content: center; }
+        .id-details { font-size: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; text-align: right; margin-top: 10px;}
+        .id-footer { position: absolute; bottom: 0; left: 0; right: 0; background: #d97706; height: 10px; }
 
         @media print { aside,header,.no-print{display:none!important} body{background:white} }
     </style>
@@ -106,7 +79,6 @@
         </a>
     </nav>
     <div class="p-4 border-t border-white/10 space-y-2">
-        <!-- Dark mode toggle -->
         <button id="darkToggle" onclick="toggleDark()" class="w-full flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 transition text-sm" style="color:var(--sidebar-text)">
             <i id="darkIcon" class="fas fa-moon w-4"></i>
             <span id="darkLabel">الوضع الداكن</span>
@@ -117,9 +89,8 @@
     </div>
 </aside>
 
-<!-- MOBILE OVERLAY -->
-<div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 md:hidden" onclick="closeSidebar()"></div>
 <!-- MOBILE DRAWER -->
+<div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-40 md:hidden" onclick="closeSidebar()"></div>
 <div id="mobileSidebar" class="fixed top-0 right-0 h-full w-72 z-50 flex flex-col shadow-2xl md:hidden border-l border-white/10">
     <div class="p-5 border-b border-white/10 flex justify-between items-center">
         <div>
@@ -148,10 +119,7 @@
     </div>
 </div>
 
-<!-- ======= MAIN ======= -->
 <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
-
-    <!-- HEADER -->
     <header class="surface border-b sticky top-0 z-30 px-4 py-3 flex justify-between items-center shadow-sm">
         <div class="flex items-center gap-3">
             <button onclick="openSidebar()" class="md:hidden p-2 rounded-lg hover:bg-amber-50 text-amber-600 transition">
@@ -163,8 +131,11 @@
             </div>
         </div>
         <div class="flex items-center gap-2 no-print">
-            <!-- حالة الدفع badge -->
             <div id="paymentBadge" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black border"></div>
+            <!-- زر طباعة الهويات للكل -->
+            <button onclick="exportIDCards()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-3 py-2 rounded-lg text-xs flex items-center gap-1.5 transition shadow">
+                <i class="fas fa-id-card"></i><span class="hidden sm:inline">طباعة الهويات (ID)</span>
+            </button>
             <button onclick="exportPDF()" class="pdf-btn text-white font-black px-3 py-2 rounded-lg text-xs flex items-center gap-1.5 transition shadow">
                 <i class="fas fa-file-pdf"></i><span class="hidden sm:inline">تصدير PDF</span>
             </button>
@@ -175,8 +146,6 @@
     </header>
 
     <div class="p-3 md:p-6 space-y-4">
-
-        <!-- فلتر + إجمالي -->
         <div class="surface border rounded-xl p-4 no-print flex flex-col sm:flex-row gap-3 items-start sm:items-end justify-between">
             <div class="flex-1 w-full sm:max-w-xs">
                 <label class="block text-xs font-black t-sub mb-1.5"><i class="fas fa-filter text-amber-500 ml-1"></i>تصفية حسب البطولة</label>
@@ -187,7 +156,6 @@
             <div id="financialSummary" class="flex gap-3 flex-wrap"></div>
         </div>
 
-        <!-- الجدول -->
         <div class="surface border rounded-xl overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
                 <table class="w-full text-right border-collapse" style="min-width:650px">
@@ -213,7 +181,6 @@
                 </table>
             </div>
         </div>
-
     </div>
 </main>
 
@@ -260,8 +227,6 @@
                     <select id="editWeight" class="w-full p-3 border rounded-lg text-sm"></select>
                 </div>
             </div>
-            
-            <!-- الحقول الجديدة للوزن الدقيق والطول -->
             <div class="grid grid-cols-2 gap-4 mt-4">
                 <div>
                     <label class="block text-xs font-black t-sub mb-1.5">الوزن الدقيق (كغم)</label>
@@ -272,7 +237,6 @@
                     <input type="number" id="editHeight" class="w-full p-3 border rounded-lg text-sm" placeholder="مثال: 170">
                 </div>
             </div>
-
         </div>
         <div class="px-6 pb-6 flex gap-3">
             <button onclick="saveEdit()" id="saveEditBtn" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-lg transition flex items-center justify-center gap-2 text-sm">
@@ -282,6 +246,9 @@
         </div>
     </div>
 </div>
+
+<!-- حاوية الهويات المخفية للطباعة -->
+<div id="id-cards-container"></div>
 
 <script type="module">
 import { db, auth } from './firebase-config.js';
@@ -334,16 +301,15 @@ function calcCategory(year, gender) {
     return { cat:"غير مصنف", key:"" };
 }
 
-/* ─── State ─── */
 let currentUID = null, currentUserData = null;
 let allPlayerDocs = [];
+window.tournamentsMap = {};
 
-/* ─── Auth ─── */
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href="index.html"; return; }
     const snap = await getDoc(doc(db,"users",user.uid));
     if (!snap.exists() || !snap.data().approved) {
-        alert("بانتظار موافقة المنظم");
+        await Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'بانتظار موافقة المنظم', confirmButtonColor: '#d97706' });
         await signOut(auth); window.location.href="index.html"; return;
     }
     currentUID = user.uid;
@@ -359,12 +325,21 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function doLogout() {
-    if (confirm("هل تريد تسجيل الخروج؟")) { await signOut(auth); window.location.href='index.html'; }
+    const res = await Swal.fire({
+        title: 'تسجيل الخروج؟',
+        text: "هل أنت متأكد أنك تريد المغادرة؟",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'نعم، خروج',
+        cancelButtonText: 'إلغاء'
+    });
+    if (res.isConfirmed) { await signOut(auth); window.location.href='index.html'; }
 }
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
 document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
 
-/* ─── Fetch Players ─── */
 async function fetchAllPlayers(uid) {
     try {
         const snap = await getDocs(query(collection(db,"players"), where("captainId","==",uid)));
@@ -373,16 +348,16 @@ async function fetchAllPlayers(uid) {
         allPlayerDocs.sort((a,b) => (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
     } catch(e) {
         console.error(e);
-        document.getElementById('playersTableBody').innerHTML =
-            `<tr><td colspan="10" class="p-8 text-center text-red-500">❌ ${e.message}</td></tr>`;
+        document.getElementById('playersTableBody').innerHTML = `<tr><td colspan="10" class="p-8 text-center text-red-500">❌ ${e.message}</td></tr>`;
     }
 }
 
-/* ─── Tournament Filter ─── */
 async function loadTournamentFilter() {
     const snap = await getDocs(collection(db,"tournaments"));
     const sel  = document.getElementById('tournamentFilter');
+    window.tournamentsMap = {};
     snap.forEach(d => {
+        window.tournamentsMap[d.id] = d.data();
         const o = document.createElement('option');
         o.value = d.id; o.textContent = d.data().name;
         sel.appendChild(o);
@@ -391,7 +366,6 @@ async function loadTournamentFilter() {
 
 window.reloadPlayers = () => renderPlayers(document.getElementById('tournamentFilter').value);
 
-/* ─── Render ─── */
 function renderPlayers(tid) {
     const tbody = document.getElementById('playersTableBody');
     const filtered = tid ? allPlayerDocs.filter(p => p.tournamentId===tid) : allPlayerDocs;
@@ -418,9 +392,7 @@ function renderPlayers(tid) {
         const beltBadge = p.belt==='black'
             ? `<span class="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-black border border-slate-700">أسود</span>`
             : `<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black">ملون</span>`;
-        const gIcon = p.gender==='male'
-            ? `<i class="fas fa-mars text-blue-400 text-[10px] ml-1"></i>`
-            : `<i class="fas fa-venus text-pink-400 text-[10px] ml-1"></i>`;
+        const gIcon = p.gender==='male' ? `<i class="fas fa-mars text-blue-400 text-[10px] ml-1"></i>` : `<i class="fas fa-venus text-pink-400 text-[10px] ml-1"></i>`;
 
         html += `
         <tr class="player-row transition cursor-default">
@@ -433,35 +405,23 @@ function renderPlayers(tid) {
             <td class="p-3">${beltBadge}</td>
             <td class="p-3 font-bold t-main text-xs">${fee} <span class="t-sub">د.أ</span></td>
             <td class="p-3 text-center">
-                ${p.birthCertBase64
-                ? `<a href="${p.birthCertBase64}" target="_blank" title="عرض الشهادة" class="text-green-500 hover:text-green-700 transition"><i class="fas fa-file-check text-sm"></i></a>`
-                : `<span class="text-slate-300"><i class="fas fa-minus text-xs"></i></span>`}
+                ${p.birthCertBase64 ? `<a href="${p.birthCertBase64}" target="_blank" title="عرض الشهادة" class="text-green-500 hover:text-green-700 transition"><i class="fas fa-file-check text-sm"></i></a>` : `<span class="text-slate-300"><i class="fas fa-minus text-xs"></i></span>`}
             </td>
             <td class="p-3 text-center no-print">
                 <div class="flex items-center justify-center gap-1">
-                    <button onclick="openEditModal('${p.id}')"
-                        class="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg transition text-xs" title="تعديل">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deletePlayer('${p.id}')"
-                        class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition text-xs" title="حذف">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <!-- أيقونة الهوية الفردية -->
+                    <button onclick="exportIDCards('${p.id}')" class="text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 p-2 rounded-lg transition text-xs" title="طباعة الهوية"><i class="fas fa-id-card"></i></button>
+                    <button onclick="openEditModal('${p.id}')" class="text-blue-500 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg transition text-xs" title="تعديل"><i class="fas fa-edit"></i></button>
+                    <button onclick="deletePlayer('${p.id}')" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition text-xs" title="حذف"><i class="fas fa-trash-alt"></i></button>
                 </div>
             </td>
         </tr>`;
     });
 
     const total = colorFee + blackFee;
-
-    // صف الإجمالي
-    html += `
-    <tr class="surface2 border-t-2 font-black text-xs" style="border-color:var(--accent)">
+    html += `<tr class="surface2 border-t-2 font-black text-xs" style="border-color:var(--accent)">
         <td colspan="2" class="p-3 text-center t-main">${filtered.length} لاعب</td>
-        <td class="p-3"></td>
-        <td class="p-3"></td>
-        <td class="p-3"></td>
-        <td class="p-3"></td>
+        <td colspan="4"></td>
         <td class="p-3 t-sub"><span class="text-blue-500 block">${colorC} ملون</span><span class="t-main block">${blackC} أسود</span></td>
         <td class="p-3 text-amber-500 text-sm">${total} <span class="text-xs">د.أ</span></td>
         <td colspan="2" class="no-print"></td>
@@ -469,26 +429,14 @@ function renderPlayers(tid) {
 
     tbody.innerHTML = html;
 
-    // خلاصة مالية
     document.getElementById('financialSummary').innerHTML = `
-        <div class="surface2 border px-3 py-2 rounded-xl text-center">
-            <p class="text-[10px] t-sub font-bold">ملون × ${colorC}</p>
-            <p class="font-black text-blue-500 text-sm">${colorFee} د.أ</p>
-        </div>
-        <div class="surface2 border px-3 py-2 rounded-xl text-center">
-            <p class="text-[10px] t-sub font-bold">أسود × ${blackC}</p>
-            <p class="font-black t-main text-sm">${blackFee} د.أ</p>
-        </div>
-        <div class="px-3 py-2 rounded-xl text-center" style="background:var(--accent)">
-            <p class="text-[10px] text-white/80 font-bold">الإجمالي</p>
-            <p class="font-black text-white text-sm">${total} د.أ</p>
-        </div>`;
+        <div class="surface2 border px-3 py-2 rounded-xl text-center"><p class="text-[10px] t-sub font-bold">ملون × ${colorC}</p><p class="font-black text-blue-500 text-sm">${colorFee} د.أ</p></div>
+        <div class="surface2 border px-3 py-2 rounded-xl text-center"><p class="text-[10px] t-sub font-bold">أسود × ${blackC}</p><p class="font-black t-main text-sm">${blackFee} د.أ</p></div>
+        <div class="px-3 py-2 rounded-xl text-center" style="background:var(--accent)"><p class="text-[10px] text-white/80 font-bold">الإجمالي</p><p class="font-black text-white text-sm">${total} د.أ</p></div>`;
 
-    // حالة الدفع badge
     const isPaid = paidCount === filtered.length && filtered.length > 0;
     const badge = document.getElementById('paymentBadge');
-    badge.classList.remove('hidden');
-    badge.classList.add('flex');
+    badge.classList.remove('hidden'); badge.classList.add('flex');
     if (isPaid) {
         badge.style.cssText = 'background:#dcfce7;color:#15803d;border-color:#86efac;display:flex';
         badge.innerHTML = `<i class="fas fa-check-circle"></i> مدفوع ✓`;
@@ -500,15 +448,25 @@ function renderPlayers(tid) {
 
 /* ─── Delete ─── */
 window.deletePlayer = async (id) => {
-    if (!confirm("هل أنت متأكد من حذف هذا اللاعب نهائياً؟")) return;
+    const result = await Swal.fire({
+        title: 'حذف اللاعب؟',
+        text: "هل أنت متأكد من حذف هذا اللاعب نهائياً من الكشف؟",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: 'نعم، احذف اللاعب',
+        cancelButtonText: 'إلغاء'
+    });
+    if (!result.isConfirmed) return;
     try {
         await deleteDoc(doc(db,"players",id));
         allPlayerDocs = allPlayerDocs.filter(p => p.id!==id);
         renderPlayers(document.getElementById('tournamentFilter').value);
-    } catch(e) { alert("❌ لا تملك صلاحية الحذف!"); }
+        Swal.fire({ icon: 'success', title: 'تم الحذف', timer: 1500, showConfirmButton: false });
+    } catch(e) { Swal.fire('خطأ!', 'لا تملك صلاحية الحذف أو حدث خطأ في النظام.', 'error'); }
 };
 
-/* ─── Edit Modal ─── */
 window.openEditModal = function(id) {
     const p = allPlayerDocs.find(x => x.id===id);
     if (!p) return;
@@ -517,13 +475,10 @@ window.openEditModal = function(id) {
     document.getElementById('editBirthYear').value = p.birthYear || '';
     document.getElementById('editGender').value    = p.gender;
     document.getElementById('editBelt').value      = p.belt;
-    
-    // سحب الطول والوزن الدقيق إن وُجد
     document.getElementById('editExactWeight').value = p.exactWeight || '';
     document.getElementById('editHeight').value      = p.height || '';
 
     recalcEdit();
-    // set weight after recalc
     setTimeout(() => { document.getElementById('editWeight').value = p.weight; }, 50);
     document.getElementById('editModal').classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -556,43 +511,33 @@ window.saveEdit = async function() {
     const belt   = document.getElementById('editBelt').value;
     const weight = document.getElementById('editWeight').value;
     const cat    = document.getElementById('editCategory').value;
-
     const exactWeight = document.getElementById('editExactWeight').value.trim();
     const height      = document.getElementById('editHeight').value.trim();
 
-    if (!name||!year||!gender||!belt||!weight) { alert("الرجاء تعبئة كافة الحقول الأساسية!"); return; }
+    if (!name||!year||!gender||!belt||!weight) { Swal.fire('تنبيه', 'الرجاء تعبئة كافة الحقول الأساسية!', 'warning'); return; }
 
     const btn = document.getElementById('saveEditBtn');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     btn.disabled = true;
 
-    const parsedExactWeight = exactWeight ? parseFloat(exactWeight) : "";
-    const parsedHeight      = height ? parseInt(height) : "";
-
     try {
+        const parsedExactWeight = exactWeight ? parseFloat(exactWeight) : "";
+        const parsedHeight      = height ? parseInt(height) : "";
         await updateDoc(doc(db,"players",id), {
             name, birthYear:parseInt(year), gender, belt, weight, category:cat,
-            exactWeight: parsedExactWeight,
-            height: parsedHeight,
+            exactWeight: parsedExactWeight, height: parsedHeight,
             updatedAt: serverTimestamp()
         });
-        // تحديث محلي
         const idx = allPlayerDocs.findIndex(p => p.id===id);
-        if (idx>-1) Object.assign(allPlayerDocs[idx], {
-            name,birthYear:parseInt(year),gender,belt,weight,category:cat,
-            exactWeight: parsedExactWeight, height: parsedHeight
-        });
+        if (idx>-1) Object.assign(allPlayerDocs[idx], { name,birthYear:parseInt(year),gender,belt,weight,category:cat, exactWeight: parsedExactWeight, height: parsedHeight });
         closeEditModal();
         renderPlayers(document.getElementById('tournamentFilter').value);
-    } catch(e) {
-        alert("❌ خطأ: " + e.message);
-    } finally {
-        btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات';
-        btn.disabled = false;
-    }
+        Swal.fire({ icon: 'success', title: 'تم التحديث!', text: 'تم حفظ تعديلات اللاعب بنجاح.', timer: 2000, showConfirmButton: false });
+    } catch(e) { Swal.fire('خطأ!', e.message, 'error'); } 
+    finally { btn.innerHTML = '<i class="fas fa-save"></i> حفظ التعديلات'; btn.disabled = false; }
 };
 
-/* ─── Export PDF (يدعم اللغة العربية 100% وبدون صفحات بيضاء) ─── */
+/* ─── Export PDF (جدول اللاعبين) ─── */
 window.exportPDF = function() {
     const pdfBtn = document.querySelector('.pdf-btn');
     const originalBtnHtml = pdfBtn.innerHTML;
@@ -601,6 +546,8 @@ window.exportPDF = function() {
 
     const tid = document.getElementById('tournamentFilter').value;
     const filtered = tid ? allPlayerDocs.filter(p => p.tournamentId === tid) : allPlayerDocs;
+    if (filtered.length === 0) { Swal.fire('تنبيه', 'لا يوجد لاعبون لتصديرهم في هذه البطولة.', 'info'); pdfBtn.innerHTML = originalBtnHtml; pdfBtn.disabled = false; return; }
+
     const club = currentUserData?.clubName || 'النادي';
     const tName = document.getElementById('tournamentFilter').options[document.getElementById('tournamentFilter').selectedIndex]?.text || 'جميع البطولات';
 
@@ -624,88 +571,116 @@ window.exportPDF = function() {
             rowNum = 0;
         }
         rowNum++;
-        const beltText = p.belt === 'black' ? 'أسود' : 'ملون';
-        const genderText = p.gender === 'male' ? 'ذكر' : 'أنثى';
-        const fee = (p.fee || (p.belt === 'black' ? 25 : 20));
-
-        const exactW = p.exactWeight ? p.exactWeight + ' كغم' : '-';
-        const h = p.height ? p.height + ' سم' : '-';
-
         const bg = rowNum % 2 === 0 ? '#f8fafc' : '#ffffff';
-        rowsHtml += `
-            <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0; text-align: center;">
+        rowsHtml += `<tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0; text-align: center;">
                 <td style="padding: 8px;">${rowNum}</td>
                 <td style="padding: 8px; font-weight: 900;">${p.name}</td>
                 <td style="padding: 8px;">${p.category}</td>
                 <td style="padding: 8px; direction: ltr;">${p.weight} كغم</td>
-                <td style="padding: 8px; direction: ltr; color:#2563eb; font-weight:bold;">${exactW}</td>
-                <td style="padding: 8px; direction: ltr; color:#16a34a; font-weight:bold;">${h}</td>
-                <td style="padding: 8px;">${beltText}</td>
-                <td style="padding: 8px;">${genderText}</td>
-                <td style="padding: 8px; color: #d97706; font-weight: bold;">${fee} د.أ</td>
-            </tr>
-        `;
+                <td style="padding: 8px; direction: ltr; color:#2563eb; font-weight:bold;">${p.exactWeight ? p.exactWeight + ' كغم' : '-'}</td>
+                <td style="padding: 8px; direction: ltr; color:#16a34a; font-weight:bold;">${p.height ? p.height + ' سم' : '-'}</td>
+                <td style="padding: 8px;">${p.belt === 'black' ? 'أسود' : 'ملون'}</td>
+                <td style="padding: 8px;">${p.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
+                <td style="padding: 8px; color: #d97706; font-weight: bold;">${p.fee || (p.belt === 'black' ? 25 : 20)} د.أ</td>
+            </tr>`;
     });
 
     let colorC = 0, blackC = 0, colorF = 0, blackF = 0;
-    filtered.forEach(p => {
-        const f = p.fee || (p.belt === 'black' ? 25 : 20);
-        if (p.belt === 'black') { blackC++; blackF += f; } else { colorC++; colorF += f; }
-    });
-    const total = colorF + blackF;
-
-    const printContainer = document.createElement('div');
+    filtered.forEach(p => { const f = p.fee || (p.belt === 'black' ? 25 : 20); if (p.belt === 'black') { blackC++; blackF += f; } else { colorC++; colorF += f; } });
     
-    printContainer.innerHTML = `
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
-            * { font-family: 'Cairo', sans-serif !important; }
-        </style>
+    const printContainer = document.createElement('div');
+    printContainer.innerHTML = `<style>@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap'); * { font-family: 'Cairo', sans-serif !important; }</style>
         <div style="width: 210mm; padding: 20px; background-color: #ffffff; direction: rtl;">
             <div style="background-color: #0f172a; border-bottom: 5px solid #d97706; padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
                 <h1 style="margin: 0; font-size: 26px; font-weight: 900;">تسجيل البطولات والاعبين</h1>
                 <p style="margin: 5px 0 0 0; font-size: 14px; color: #cbd5e1;">Jordan Taekwondo Federation - Player Registration System</p>
                 <p style="margin: 10px 0 0 0; font-size: 13px; color: #fbbf24; font-weight: bold;">${club} &nbsp;|&nbsp; ${tName} &nbsp;|&nbsp; ${new Date().toLocaleDateString('ar-EG')}</p>
             </div>
-            
             <table style="width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 13px;">
-                <thead>
-                    <tr style="background-color: #d97706; color: white;">
-                        <th style="padding: 10px; border: 1px solid #b45309;">#</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">اسم اللاعب</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الفئة</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">فئة الوزن</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الوزن الدقيق</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الطول</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الحزام</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الجنس</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الرسوم</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rowsHtml}
-                </tbody>
+                <thead><tr style="background-color: #d97706; color: white;">
+                        <th style="padding: 10px; border: 1px solid #b45309;">#</th><th style="padding: 10px; border: 1px solid #b45309;">اسم اللاعب</th><th style="padding: 10px; border: 1px solid #b45309;">الفئة</th><th style="padding: 10px; border: 1px solid #b45309;">فئة الوزن</th><th style="padding: 10px; border: 1px solid #b45309;">الوزن الدقيق</th><th style="padding: 10px; border: 1px solid #b45309;">الطول</th><th style="padding: 10px; border: 1px solid #b45309;">الحزام</th><th style="padding: 10px; border: 1px solid #b45309;">الجنس</th><th style="padding: 10px; border: 1px solid #b45309;">الرسوم</th>
+                </tr></thead>
+                <tbody>${rowsHtml}</tbody>
             </table>
-
             <div style="margin-top: 30px; background-color: #f8fafc; border: 2px solid #d97706; border-radius: 10px; padding: 15px; text-align: center;">
                 <p style="margin: 0; font-size: 12px; color: #0f172a;">إجمالي اللاعبين: ${filtered.length} &nbsp;|&nbsp; حزام ملون: ${colorC} (${colorF} د.أ) &nbsp;|&nbsp; حزام أسود: ${blackC} (${blackF} د.أ)</p>
-                <h3 style="margin: 10px 0 0 0; color: #d97706; font-size: 18px; font-weight: 900;">المبلغ الإجمالي المطلوب: ${total} دينار أردني</h3>
+                <h3 style="margin: 10px 0 0 0; color: #d97706; font-size: 18px; font-weight: 900;">المبلغ الإجمالي المطلوب: ${colorF + blackF} دينار أردني</h3>
             </div>
-        </div>
-    `;
+        </div>`;
 
-    const opt = {
-        margin:       5,
-        filename:     `${club}-كشف-${new Date().toISOString().slice(0,10)}.pdf`,
-        image:        { type: 'jpeg', quality: 1 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    html2pdf().set({ margin: 5, filename: `${club}-كشف-${new Date().toISOString().slice(0,10)}.pdf`, image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(printContainer).save().then(() => { pdfBtn.innerHTML = originalBtnHtml; pdfBtn.disabled = false; });
+};
 
-    html2pdf().set(opt).from(printContainer).save().then(() => {
-        pdfBtn.innerHTML = originalBtnHtml;
-        pdfBtn.disabled = false;
+/* ─── Export ID Cards (الهويات) ─── */
+window.exportIDCards = async function(singleId = null) {
+    const tid = document.getElementById('tournamentFilter').value;
+    if (!tid && !singleId) {
+        Swal.fire('تنبيه', 'الرجاء اختيار بطولة من القائمة المنسدلة لطباعة هويات لاعبيها.', 'warning');
+        return;
+    }
+
+    const container = document.getElementById('id-cards-container');
+    container.innerHTML = '';
+    
+    let playersToPrint = [];
+    if (singleId) {
+        playersToPrint = allPlayerDocs.filter(p => p.id === singleId);
+    } else {
+        playersToPrint = allPlayerDocs.filter(p => p.tournamentId === tid);
+    }
+
+    if (playersToPrint.length === 0) {
+        Swal.fire('تنبيه', 'لا يوجد لاعبون لطباعة هوياتهم.', 'info');
+        return;
+    }
+
+    Swal.fire({ title: 'جاري تجهيز الهويات...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+    playersToPrint.forEach(p => {
+        const tInfo = window.tournamentsMap[p.tournamentId] || {};
+        // شعار افتراضي في حال لم يرفع الأدمن شعاراً للبطولة
+        const logoSrc = tInfo.tournamentLogo || 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Taekwondo_pictogram.svg/1200px-Taekwondo_pictogram.svg.png';
+        
+        const card = document.createElement('div');
+        card.className = 'id-card';
+        card.innerHTML = `
+            <div class="id-header">${tInfo.name || 'بطولة التايكواندو'}</div>
+            <img src="${logoSrc}" class="id-logo" onerror="this.style.display='none'">
+            <div class="id-name">${p.name}</div>
+            <div class="id-club">${currentUserData.clubName}</div>
+            <div class="id-qr" id="qr-${p.id}"></div>
+            <div class="id-details">
+                <div><b>الفئة:</b> ${p.category}</div>
+                <div><b>الوزن:</b> <span dir="ltr">${p.weight} kg</span></div>
+                <div><b>الحزام:</b> ${p.belt === 'black' ? 'أسود' : 'ملون'}</div>
+                <div><b>سنة الميلاد:</b> ${p.birthYear}</div>
+            </div>
+            <div class="id-footer"></div>
+        `;
+        container.appendChild(card);
+
+        // إنشاء QR Code
+        new QRCode(card.querySelector(`#qr-${p.id}`), {
+            text: `https://tkd-registration.web.app/verify?pid=${p.id}`,
+            width: 80, height: 80
+        });
     });
+
+    // تأخير بسيط لضمان رسم الـ QR Code داخل العناصر
+    setTimeout(() => {
+        const opt = {
+            margin: 5,
+            filename: `ID-Cards-${new Date().getTime()}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(container).save().then(() => {
+            container.innerHTML = '';
+            Swal.close();
+        });
+    }, 500);
 };
 </script>
 

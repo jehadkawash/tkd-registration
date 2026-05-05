@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأكيد بيانات اللاعب | التايكواندو</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; background-color: #0f172a; color: #f1f5f9; min-height: 100vh; display: flex; flex-direction: column; }
+        .glass-card { background: #1e293b; border: 1px solid #334155; }
+    </style>
+</head>
+<body class="items-center justify-center p-4 relative overflow-hidden">
+
+    <!-- خلفية ديكورية جذابة -->
+    <div class="fixed top-0 right-0 w-64 h-64 bg-amber-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 -mr-20 -mt-20 pointer-events-none"></div>
+    <div class="fixed bottom-0 left-0 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-10 -ml-20 -mb-20 pointer-events-none"></div>
+
+    <div class="w-full max-w-sm glass-card rounded-3xl shadow-2xl p-6 sm:p-8 relative z-10 w-full mx-auto my-auto mt-10">
+        
+        <!-- حالة التحميل -->
+        <div id="loading" class="text-center py-10">
+            <i class="fas fa-circle-notch fa-spin text-amber-500 text-5xl mb-4 block"></i>
+            <p class="text-slate-300 font-bold text-lg">جاري جلب البطاقة...</p>
+        </div>
+
+        <!-- عرض بيانات اللاعب -->
+        <div id="playerData" class="hidden space-y-6">
+            
+            <!-- معلومات البطولة والشعار -->
+            <div class="text-center border-b border-[#334155] pb-5">
+                <div id="tLogoContainer" class="w-20 h-20 mx-auto mb-3 rounded-xl overflow-hidden bg-white hidden flex items-center justify-center p-1 shadow-lg">
+                    <img id="tLogo" src="" class="w-full h-full object-contain">
+                </div>
+                <h1 id="tName" class="text-amber-500 font-black text-sm uppercase tracking-wider">بطولة التايكواندو</h1>
+            </div>
+
+            <!-- معلومات اللاعب -->
+            <div class="text-center">
+                <h2 id="pName" class="text-3xl font-black text-white mb-2 leading-tight">...</h2>
+                <p id="pClub" class="text-slate-300 font-bold text-sm bg-slate-800 inline-block px-4 py-1.5 rounded-full shadow-inner"><i class="fas fa-shield-alt text-amber-500 ml-1"></i> ...</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-y-6 gap-x-4 text-sm bg-[#0f172a] p-5 rounded-2xl border border-[#334155] shadow-inner">
+                <div>
+                    <p class="text-slate-500 text-[11px] font-black mb-1 uppercase">الفئة العمرية</p>
+                    <p id="pCategory" class="text-white font-bold text-sm">...</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-[11px] font-black mb-1 uppercase">سنة الميلاد</p>
+                    <p id="pYear" class="text-white font-bold text-sm">...</p>
+                </div>
+
+                <div class="col-span-2 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20 text-center shadow-lg">
+                    <p class="text-amber-500 text-[11px] font-black mb-1">فئة الوزن المسجلة</p>
+                    <p id="pWeight" class="text-amber-500 font-black text-2xl" dir="ltr">...</p>
+                </div>
+
+                <div>
+                    <p class="text-slate-500 text-[11px] font-black mb-1 uppercase">الوزن الدقيق</p>
+                    <p id="pExactWeight" class="text-blue-400 font-bold text-sm" dir="ltr">...</p>
+                </div>
+                <div>
+                    <p class="text-slate-500 text-[11px] font-black mb-1 uppercase">الحزام</p>
+                    <p id="pBelt" class="text-white font-bold text-sm">...</p>
+                </div>
+            </div>
+
+            <!-- ختم توثيق -->
+            <div class="text-center pt-2">
+                <p class="text-green-500 text-xs font-black"><i class="fas fa-check-circle mr-1"></i> تم التحقق من القيود</p>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+import { db } from './firebase-config.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
+
+async function init() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pid = urlParams.get('pid');
+
+    if (!pid) {
+        showError('رابط غير صالح!', 'تأكد من مسح كود QR الصحيح.');
+        return;
+    }
+
+    try {
+        // 1. جلب بيانات اللاعب
+        const pRef = doc(db, "players", pid);
+        const pSnap = await getDoc(pRef);
+
+        if (!pSnap.exists()) {
+            showError('لاعب غير موجود!', 'هذه البطاقة غير مسجلة في النظام.');
+            return;
+        }
+
+        const p = pSnap.data();
+
+        // 2. جلب بيانات البطولة (للشعار والاسم)
+        if (p.tournamentId) {
+            try {
+                const tRef = doc(db, "tournaments", p.tournamentId);
+                const tSnap = await getDoc(tRef);
+                if (tSnap.exists()) {
+                    const t = tSnap.data();
+                    document.getElementById('tName').textContent = t.name;
+                    if (t.tournamentLogo) {
+                        document.getElementById('tLogo').src = t.tournamentLogo;
+                        document.getElementById('tLogoContainer').classList.remove('hidden');
+                    }
+                }
+            } catch (err) {
+                console.log("لم يتم جلب بيانات البطولة:", err);
+            }
+        }
+
+        // 3. عرض البيانات
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('playerData').classList.remove('hidden');
+
+        document.getElementById('pName').textContent = p.name;
+        document.getElementById('pClub').textContent = p.clubName || 'بدون نادي';
+        document.getElementById('pCategory').textContent = p.category;
+        document.getElementById('pYear').textContent = p.birthYear;
+        document.getElementById('pWeight').textContent = p.weight + ' كغم';
+        
+        const beltAr = p.belt === 'black' ? 'أسود' : 'ملون';
+        document.getElementById('pBelt').textContent = beltAr;
+        
+        document.getElementById('pExactWeight').textContent = p.exactWeight ? p.exactWeight + ' كغم' : '-';
+
+    } catch (error) {
+        console.error(error);
+        showError('خطأ في الاتصال!', 'لا يمكن جلب البيانات حالياً.');
+    }
+}
+
+function showError(title, msg) {
+    document.getElementById('loading').innerHTML = `
+        <div class="bg-red-500/10 p-5 rounded-2xl border border-red-500/20">
+            <i class="fas fa-exclamation-triangle text-red-500 text-5xl mb-4 block"></i>
+            <p class="text-red-400 font-black text-xl mb-1">${title}</p>
+            <p class="text-slate-400 text-sm">${msg}</p>
+        </div>`;
+}
+
+// تشغيل الدالة فوراً
+init();
+</script>
+</body>
+</html>
