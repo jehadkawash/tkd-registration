@@ -442,6 +442,7 @@ window.showSection = function(name){
 
 /* ── State ── */
 let currentUser=null, allPlayers=[], usersMap={}, tournamentsMap={};
+window.lastFilteredPlayers = []; // مصفوفة لتخزين اللاعبين المفصلين للتصدير المباشر
 
 /* ── Auth ── */
 onAuthStateChanged(auth, async(user)=>{
@@ -740,6 +741,9 @@ window.filterPlayers = async function(){
             const wb=parseFloat((b.weight||'0').replace(/[^0-9.]/g,''));
             return sortDir==='asc'?wa-wb:wb-wa;
         });
+        
+        window.lastFilteredPlayers = players; // حفظ البيانات لدالة التصدير PDF و CSV
+
         if(!players.length){tbody.innerHTML='<tr><td colspan="9" class="p-8 text-center t-sub">لا توجد نتائج</td></tr>';return;}
         tbody.innerHTML=players.map((p,i)=>`
         <tr class="hover:surface2 transition text-xs">
@@ -756,6 +760,7 @@ window.filterPlayers = async function(){
     }catch(e){console.error(e);}
 };
 
+/* ── Export Admin PDF (النسخة الآمنة والداعمة للغة العربية) ── */
 window.exportAdminPDF = async function(){
     const btn = document.querySelector('button[onclick="exportAdminPDF()"]');
     const originalHtml = btn.innerHTML;
@@ -763,19 +768,40 @@ window.exportAdminPDF = async function(){
     btn.disabled = true;
 
     await filterPlayers(); // تأكد من تحميل وعرض البيانات في الجدول أولاً
+    const playersToExport = window.lastFilteredPlayers || [];
 
-    // بناء صفوف الجدول من الـ HTML المعروض
+    if (playersToExport.length === 0) {
+        alert("لا يوجد بيانات لتصديرها");
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        return;
+    }
+
     let rowsHtml = '';
-    document.querySelectorAll('#adminPlayersBody tr').forEach(tr => {
-        let rowHtml = '<tr style="border-bottom: 1px solid #e2e8f0; text-align: center;">';
-        tr.querySelectorAll('td').forEach(td => {
-            rowHtml += `<td style="padding: 8px;">${td.innerHTML}</td>`;
-        });
-        rowHtml += '</tr>';
-        rowsHtml += rowHtml;
+    playersToExport.forEach((p, i) => {
+        const clubName = usersMap[p.captainId]?.clubName || p.clubName || '-';
+        const beltBadge = p.belt === 'black' 
+            ? `<span style="background-color: #0f172a; color: #ffffff; padding: 4px 10px; border-radius: 12px; font-size: 11px;">أسود</span>`
+            : `<span style="background-color: #dbeafe; color: #1d4ed8; padding: 4px 10px; border-radius: 12px; font-size: 11px;">ملون</span>`;
+        const exactW = p.exactWeight ? p.exactWeight + ' كغم' : '-';
+        const h = p.height ? p.height + ' سم' : '-';
+        const bg = i % 2 === 0 ? '#f8fafc' : '#ffffff';
+
+        rowsHtml += `
+            <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0; text-align: center; color: #0f172a;">
+                <td style="padding: 8px;">${i + 1}</td>
+                <td style="padding: 8px; font-weight: 900;">${p.name}</td>
+                <td style="padding: 8px; font-weight: bold;">${clubName}</td>
+                <td style="padding: 8px;">${p.category}</td>
+                <td style="padding: 8px; font-weight: bold; color: #d97706;" dir="ltr">${p.weight} كغم</td>
+                <td style="padding: 8px; font-weight: bold; color: #2563eb;" dir="ltr">${exactW}</td>
+                <td style="padding: 8px; font-weight: bold; color: #16a34a;" dir="ltr">${h}</td>
+                <td style="padding: 8px;">${beltBadge}</td>
+                <td style="padding: 8px;">${p.gender === 'male' ? 'ذكر' : 'أنثى'}</td>
+            </tr>
+        `;
     });
 
-    // إنشاء حاوية خفية للطباعة
     const printContainer = document.createElement('div');
     printContainer.innerHTML = `
         <style>
@@ -788,7 +814,7 @@ window.exportAdminPDF = async function(){
                 <p style="margin: 5px 0 0 0; font-size: 14px; color: #cbd5e1;">Jordan Taekwondo Federation - Players Report</p>
                 <p style="margin: 10px 0 0 0; font-size: 13px; color: #fbbf24; font-weight: bold;">${new Date().toLocaleString('ar-EG')}</p>
             </div>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 13px;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 13px; color: #000000;">
                 <thead>
                     <tr style="background-color: #d97706; color: white;">
                         <th style="padding: 10px; border: 1px solid #b45309;">#</th>
@@ -809,13 +835,12 @@ window.exportAdminPDF = async function(){
         </div>
     `;
 
-    // إعدادات pdf
     const opt = {
         margin:       5,
         filename:     `players-report-${new Date().toISOString().slice(0,10)}.pdf`,
         image:        { type: 'jpeg', quality: 1 },
         html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' } // عرضي لأن الجدول كبير
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
     };
 
     html2pdf().set(opt).from(printContainer).save().then(() => {
@@ -824,16 +849,25 @@ window.exportAdminPDF = async function(){
     });
 };
 
+/* ── Export CSV ── */
 window.exportCSV = async function(){
     await filterPlayers();
-    const rows=[['#','اللاعب','النادي','الفئة','الوزن','الوزن الدقيق','الطول','الحزام','الجنس']];
-    document.querySelectorAll('#adminPlayersBody tr').forEach(tr=>{
-        const row=[]; tr.querySelectorAll('td').forEach(td=>row.push(td.textContent.trim())); if(row.length) rows.push(row);
+    const playersToExport = window.lastFilteredPlayers || [];
+    const rows = [['#','اللاعب','النادي','الفئة','الوزن','الوزن الدقيق','الطول','الحزام','الجنس']];
+    
+    playersToExport.forEach((p, i) => {
+        const clubName = usersMap[p.captainId]?.clubName || p.clubName || '-';
+        const exactW = p.exactWeight ? p.exactWeight + ' كغم' : '-';
+        const h = p.height ? p.height + ' سم' : '-';
+        const beltText = p.belt === 'black' ? 'أسود' : 'ملون';
+        const genderText = p.gender === 'male' ? 'ذكر' : 'أنثى';
+        rows.push([i+1, p.name, clubName, p.category, p.weight, exactW, h, beltText, genderText]);
     });
-    const csv=rows.map(r=>r.join(',')).join('\n');
-    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a'); a.href=url; a.download=`players-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob(['\uFEFF'+csv], {type: 'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `players-${new Date().toISOString().slice(0,10)}.csv`; a.click();
 };
 
 /* ── Admins ── */
