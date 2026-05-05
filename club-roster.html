@@ -190,13 +190,15 @@
         <!-- الجدول -->
         <div class="surface border rounded-xl overflow-hidden shadow-sm">
             <div class="overflow-x-auto">
-                <table class="w-full text-right border-collapse" style="min-width:580px">
+                <table class="w-full text-right border-collapse" style="min-width:650px">
                     <thead class="surface2 border-b text-xs">
                         <tr>
                             <th class="p-3 font-black t-sub text-center w-10">#</th>
                             <th class="p-3 font-black t-sub">اسم اللاعب</th>
                             <th class="p-3 font-black t-sub">الفئة</th>
                             <th class="p-3 font-black t-sub">الوزن</th>
+                            <th class="p-3 font-black t-sub text-center">الوزن الدقيق</th>
+                            <th class="p-3 font-black t-sub text-center">الطول</th>
                             <th class="p-3 font-black t-sub">الحزام</th>
                             <th class="p-3 font-black t-sub">الرسوم</th>
                             <th class="p-3 font-black t-sub text-center">شهادة</th>
@@ -204,7 +206,7 @@
                         </tr>
                     </thead>
                     <tbody id="playersTableBody" class="divide-y" style="border-color:var(--border)">
-                        <tr><td colspan="8" class="p-10 text-center t-sub">
+                        <tr><td colspan="10" class="p-10 text-center t-sub">
                             <i class="fas fa-spinner fa-spin text-amber-500 text-2xl mb-2 block"></i>جاري التحميل...
                         </td></tr>
                     </tbody>
@@ -258,6 +260,19 @@
                     <select id="editWeight" class="w-full p-3 border rounded-lg text-sm"></select>
                 </div>
             </div>
+            
+            <!-- الحقول الجديدة للوزن الدقيق والطول -->
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div>
+                    <label class="block text-xs font-black t-sub mb-1.5">الوزن الدقيق (كغم)</label>
+                    <input type="number" step="0.1" id="editExactWeight" class="w-full p-3 border rounded-lg text-sm" placeholder="مثال: 55.5">
+                </div>
+                <div>
+                    <label class="block text-xs font-black t-sub mb-1.5">الطول (سم)</label>
+                    <input type="number" id="editHeight" class="w-full p-3 border rounded-lg text-sm" placeholder="مثال: 170">
+                </div>
+            </div>
+
         </div>
         <div class="px-6 pb-6 flex gap-3">
             <button onclick="saveEdit()" id="saveEditBtn" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-lg transition flex items-center justify-center gap-2 text-sm">
@@ -349,7 +364,7 @@ async function doLogout() {
 document.getElementById('logoutBtn').addEventListener('click', doLogout);
 document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
 
-/* ─── Fetch Players (simple query, no composite index) ─── */
+/* ─── Fetch Players ─── */
 async function fetchAllPlayers(uid) {
     try {
         const snap = await getDocs(query(collection(db,"players"), where("captainId","==",uid)));
@@ -359,7 +374,7 @@ async function fetchAllPlayers(uid) {
     } catch(e) {
         console.error(e);
         document.getElementById('playersTableBody').innerHTML =
-            `<tr><td colspan="8" class="p-8 text-center text-red-500">❌ ${e.message}</td></tr>`;
+            `<tr><td colspan="10" class="p-8 text-center text-red-500">❌ ${e.message}</td></tr>`;
     }
 }
 
@@ -382,7 +397,7 @@ function renderPlayers(tid) {
     const filtered = tid ? allPlayerDocs.filter(p => p.tournamentId===tid) : allPlayerDocs;
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-10 text-center t-sub">
+        tbody.innerHTML = `<tr><td colspan="10" class="p-10 text-center t-sub">
             <i class="fas fa-users text-4xl mb-3 block opacity-20"></i>
             <p class="font-bold">لا يوجد لاعبون مسجلون بعد.</p>
             <a href="add-player.html" class="inline-block mt-3 bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-sm hover:bg-amber-700 transition">+ سجّل لاعبك الأول</a>
@@ -413,6 +428,8 @@ function renderPlayers(tid) {
             <td class="p-3 font-black t-main text-sm">${gIcon}${p.name}</td>
             <td class="p-3 t-sub text-xs leading-tight">${p.category}</td>
             <td class="p-3 font-black text-amber-500 text-sm">${p.weight}<span class="text-[10px] font-normal t-sub"> كغم</span></td>
+            <td class="p-3 font-bold text-blue-500 text-center" dir="ltr">${p.exactWeight ? p.exactWeight + ' كغم' : '-'}</td>
+            <td class="p-3 font-bold text-green-500 text-center" dir="ltr">${p.height ? p.height + ' سم' : '-'}</td>
             <td class="p-3">${beltBadge}</td>
             <td class="p-3 font-bold t-main text-xs">${fee} <span class="t-sub">د.أ</span></td>
             <td class="p-3 text-center">
@@ -443,9 +460,11 @@ function renderPlayers(tid) {
         <td colspan="2" class="p-3 text-center t-main">${filtered.length} لاعب</td>
         <td class="p-3"></td>
         <td class="p-3"></td>
+        <td class="p-3"></td>
+        <td class="p-3"></td>
         <td class="p-3 t-sub"><span class="text-blue-500 block">${colorC} ملون</span><span class="t-main block">${blackC} أسود</span></td>
         <td class="p-3 text-amber-500 text-sm">${total} <span class="text-xs">د.أ</span></td>
-        <td class="no-print"></td>
+        <td colspan="2" class="no-print"></td>
     </tr>`;
 
     tbody.innerHTML = html;
@@ -498,6 +517,11 @@ window.openEditModal = function(id) {
     document.getElementById('editBirthYear').value = p.birthYear || '';
     document.getElementById('editGender').value    = p.gender;
     document.getElementById('editBelt').value      = p.belt;
+    
+    // سحب الطول والوزن الدقيق إن وُجد
+    document.getElementById('editExactWeight').value = p.exactWeight || '';
+    document.getElementById('editHeight').value      = p.height || '';
+
     recalcEdit();
     // set weight after recalc
     setTimeout(() => { document.getElementById('editWeight').value = p.weight; }, 50);
@@ -533,20 +557,31 @@ window.saveEdit = async function() {
     const weight = document.getElementById('editWeight').value;
     const cat    = document.getElementById('editCategory').value;
 
-    if (!name||!year||!gender||!belt||!weight) { alert("الرجاء تعبئة كافة الحقول!"); return; }
+    const exactWeight = document.getElementById('editExactWeight').value.trim();
+    const height      = document.getElementById('editHeight').value.trim();
+
+    if (!name||!year||!gender||!belt||!weight) { alert("الرجاء تعبئة كافة الحقول الأساسية!"); return; }
 
     const btn = document.getElementById('saveEditBtn');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
     btn.disabled = true;
 
+    const parsedExactWeight = exactWeight ? parseFloat(exactWeight) : "";
+    const parsedHeight      = height ? parseInt(height) : "";
+
     try {
         await updateDoc(doc(db,"players",id), {
             name, birthYear:parseInt(year), gender, belt, weight, category:cat,
+            exactWeight: parsedExactWeight,
+            height: parsedHeight,
             updatedAt: serverTimestamp()
         });
         // تحديث محلي
         const idx = allPlayerDocs.findIndex(p => p.id===id);
-        if (idx>-1) Object.assign(allPlayerDocs[idx], {name,birthYear:parseInt(year),gender,belt,weight,category:cat});
+        if (idx>-1) Object.assign(allPlayerDocs[idx], {
+            name,birthYear:parseInt(year),gender,belt,weight,category:cat,
+            exactWeight: parsedExactWeight, height: parsedHeight
+        });
         closeEditModal();
         renderPlayers(document.getElementById('tournamentFilter').value);
     } catch(e) {
@@ -556,21 +591,19 @@ window.saveEdit = async function() {
         btn.disabled = false;
     }
 };
+
 /* ─── Export PDF (يدعم اللغة العربية 100% وبدون صفحات بيضاء) ─── */
 window.exportPDF = function() {
-    // تغيير شكل الزر ليظهر للمستخدم أن التحميل قيد التنفيذ
     const pdfBtn = document.querySelector('.pdf-btn');
     const originalBtnHtml = pdfBtn.innerHTML;
     pdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التصدير...';
     pdfBtn.disabled = true;
 
-    // جلب البيانات
     const tid = document.getElementById('tournamentFilter').value;
     const filtered = tid ? allPlayerDocs.filter(p => p.tournamentId === tid) : allPlayerDocs;
     const club = currentUserData?.clubName || 'النادي';
     const tName = document.getElementById('tournamentFilter').options[document.getElementById('tournamentFilter').selectedIndex]?.text || 'جميع البطولات';
 
-    // ترتيب اللاعبين حسب الفئة ثم الوزن
     const catOrder = ["أطفال (6-8 سنوات)","أطفال (9-11 سنة)","أشبال (12-14 سنة)","زهرات (12-14 سنة)","ناشئين (15-17 سنة)","ناشئات (15-17 سنة)","رجال (+18)","سيدات (+18)"];
     const sorted = [...filtered].sort((a, b) => {
         const ci = catOrder.indexOf(a.category) - catOrder.indexOf(b.category);
@@ -580,14 +613,13 @@ window.exportPDF = function() {
         return wa - wb;
     });
 
-    // بناء صفوف الجدول
     let rowsHtml = '';
     let lastCat = null;
     let rowNum = 0;
     
     sorted.forEach(p => {
         if (p.category !== lastCat) {
-            rowsHtml += `<tr><td colspan="7" style="background-color: #0f172a; color: #fbbf24; font-weight: bold; padding: 10px; font-size: 14px; text-align: center;">${p.category}</td></tr>`;
+            rowsHtml += `<tr><td colspan="9" style="background-color: #0f172a; color: #fbbf24; font-weight: bold; padding: 10px; font-size: 14px; text-align: center;">${p.category}</td></tr>`;
             lastCat = p.category;
             rowNum = 0;
         }
@@ -596,6 +628,9 @@ window.exportPDF = function() {
         const genderText = p.gender === 'male' ? 'ذكر' : 'أنثى';
         const fee = (p.fee || (p.belt === 'black' ? 25 : 20));
 
+        const exactW = p.exactWeight ? p.exactWeight + ' كغم' : '-';
+        const h = p.height ? p.height + ' سم' : '-';
+
         const bg = rowNum % 2 === 0 ? '#f8fafc' : '#ffffff';
         rowsHtml += `
             <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0; text-align: center;">
@@ -603,6 +638,8 @@ window.exportPDF = function() {
                 <td style="padding: 8px; font-weight: 900;">${p.name}</td>
                 <td style="padding: 8px;">${p.category}</td>
                 <td style="padding: 8px; direction: ltr;">${p.weight} كغم</td>
+                <td style="padding: 8px; direction: ltr; color:#2563eb; font-weight:bold;">${exactW}</td>
+                <td style="padding: 8px; direction: ltr; color:#16a34a; font-weight:bold;">${h}</td>
                 <td style="padding: 8px;">${beltText}</td>
                 <td style="padding: 8px;">${genderText}</td>
                 <td style="padding: 8px; color: #d97706; font-weight: bold;">${fee} د.أ</td>
@@ -610,7 +647,6 @@ window.exportPDF = function() {
         `;
     });
 
-    // حساب الإجمالي
     let colorC = 0, blackC = 0, colorF = 0, blackF = 0;
     filtered.forEach(p => {
         const f = p.fee || (p.belt === 'black' ? 25 : 20);
@@ -618,10 +654,8 @@ window.exportPDF = function() {
     });
     const total = colorF + blackF;
 
-    // إنشاء العنصر الحاوي (بدون إضافته للشاشة لتجنب مشكلة الصفحة البيضاء)
     const printContainer = document.createElement('div');
     
-    // وضعنا التنسيقات والخطوط مباشرة داخل العنصر ليتعرف عليها محرك الـ PDF
     printContainer.innerHTML = `
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
@@ -640,7 +674,9 @@ window.exportPDF = function() {
                         <th style="padding: 10px; border: 1px solid #b45309;">#</th>
                         <th style="padding: 10px; border: 1px solid #b45309;">اسم اللاعب</th>
                         <th style="padding: 10px; border: 1px solid #b45309;">الفئة</th>
-                        <th style="padding: 10px; border: 1px solid #b45309;">الوزن</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">فئة الوزن</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">الوزن الدقيق</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">الطول</th>
                         <th style="padding: 10px; border: 1px solid #b45309;">الحزام</th>
                         <th style="padding: 10px; border: 1px solid #b45309;">الجنس</th>
                         <th style="padding: 10px; border: 1px solid #b45309;">الرسوم</th>
@@ -658,7 +694,6 @@ window.exportPDF = function() {
         </div>
     `;
 
-    // إعدادات مكتبة html2pdf
     const opt = {
         margin:       5,
         filename:     `${club}-كشف-${new Date().toISOString().slice(0,10)}.pdf`,
@@ -667,9 +702,8 @@ window.exportPDF = function() {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // إنشاء وحفظ الـ PDF فوراً من العنصر المخزن في الذاكرة
     html2pdf().set(opt).from(printContainer).save().then(() => {
-        pdfBtn.innerHTML = originalBtnHtml; // إعادة الزر لحالته الطبيعية
+        pdfBtn.innerHTML = originalBtnHtml;
         pdfBtn.disabled = false;
     });
 };

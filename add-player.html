@@ -167,11 +167,17 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-black t-sub mb-1.5">الوزن <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-black t-sub mb-1.5">فئة الوزن <span class="text-red-500">*</span></label>
                         <select id="weight" class="w-full p-3 border rounded-xl text-sm surface2 opacity-60" disabled>
                             <option value="">أدخل السنة والجنس أولاً</option>
                         </select>
                     </div>
+                </div>
+
+                <!-- حقل الوزن الدقيق الجديد -->
+                <div>
+                    <label class="block text-xs font-black t-sub mb-1.5">الوزن الدقيق (كغم)</label>
+                    <input type="number" step="0.1" id="exactWeight" class="w-full p-3 border rounded-xl text-sm" placeholder="مثال: 55.5">
                 </div>
 
                 <!-- حقول إضافية ديناميكية -->
@@ -416,8 +422,10 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
     const weight=document.getElementById('weight').value;
     const cat=document.getElementById('categoryField').value;
     const tid=document.getElementById('tournamentSelect').value;
+    const exactWeight=document.getElementById('exactWeight').value.trim();
+    
     if(!tid){alert("الرجاء اختيار بطولة!");return;}
-    if(!name||!year||!gender||!belt||!weight){alert("الرجاء تعبئة كافة الحقول!");return;}
+    if(!name||!year||!gender||!belt||!weight){alert("الرجاء تعبئة كافة الحقول الأساسية!");return;}
     if(cat==='غير مصنف'||!cat){alert("الفئة العمرية خارج نطاق البطولة!");return;}
     if(!document.getElementById('dupAlert').classList.contains('hidden')){ if(!confirm("اللاعب قد يكون مكرراً. هل تريد المتابعة؟")) return; }
     if(currentTournament?.requireHeight&&!document.getElementById('playerHeight').value){alert("الرجاء إدخال الطول!");return;}
@@ -426,9 +434,18 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
 
     const btn=document.getElementById('saveBtn');
     btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التسجيل...'; btn.disabled=true;
+    
+    const parsedExactWeight = exactWeight ? parseFloat(exactWeight) : "";
+
     try{
         const fee=belt==='black'?(currentTournament?.feeBlack||25):(currentTournament?.feeColor||20);
-        const data={name,birthYear:parseInt(year),gender,belt,category:cat,weight,fee,paid:false,tournamentId:tid,captainId:currentUser.uid,captainEmail:currentUser.email,clubName:currentUserData.clubName||currentUser.email,createdAt:serverTimestamp()};
+        const data={
+            name,birthYear:parseInt(year),gender,belt,category:cat,weight,fee,paid:false,
+            tournamentId:tid,captainId:currentUser.uid,captainEmail:currentUser.email,
+            clubName:currentUserData.clubName||currentUser.email,
+            createdAt:serverTimestamp(),
+            exactWeight: parsedExactWeight
+        };
         if(currentTournament?.requireHeight) data.height=parseInt(document.getElementById('playerHeight').value)||null;
         if(currentTournament?.requireDob)    data.dob=document.getElementById('playerDob').value||null;
         if(currentTournament?.requireLevel)  data.level=document.getElementById('playerLevel').value||null;
@@ -449,7 +466,7 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
         const ref=await addDoc(collection(db,"players"),data);
         existingPlayers.push({id:ref.id,...data});
         // reset
-        ['playerName','birthYear','playerHeight','playerDob'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+        ['playerName','birthYear','playerHeight','playerDob','exactWeight'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
         ['gender','belt','playerLevel'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
         document.getElementById('categoryDisplay').innerHTML='<span class="opacity-50">تُحسب تلقائياً</span>';
         document.getElementById('categoryField').value='';
