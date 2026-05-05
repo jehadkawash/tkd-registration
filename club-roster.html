@@ -6,8 +6,7 @@
     <title>كشف النادي | تسجيل البطولات والاعبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 
@@ -557,118 +556,125 @@ window.saveEdit = async function() {
         btn.disabled = false;
     }
 };
-
-/* ─── Export PDF ─── */
+/* ─── Export PDF (يدعم اللغة العربية 100%) ─── */
 window.exportPDF = function() {
-    const { jsPDF } = window.jspdf;
-    const doc2 = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    // تغيير شكل الزر ليظهر للمستخدم أن التحميل قيد التنفيذ
+    const pdfBtn = document.querySelector('.pdf-btn');
+    const originalBtnHtml = pdfBtn.innerHTML;
+    pdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التصدير...';
+    pdfBtn.disabled = true;
 
-    const tid      = document.getElementById('tournamentFilter').value;
-    const filtered = tid ? allPlayerDocs.filter(p=>p.tournamentId===tid) : allPlayerDocs;
-    const club     = currentUserData?.clubName || 'النادي';
-    const tName    = document.getElementById('tournamentFilter').options[document.getElementById('tournamentFilter').selectedIndex]?.text || 'جميع البطولات';
+    // جلب البيانات
+    const tid = document.getElementById('tournamentFilter').value;
+    const filtered = tid ? allPlayerDocs.filter(p => p.tournamentId === tid) : allPlayerDocs;
+    const club = currentUserData?.clubName || 'النادي';
+    const tName = document.getElementById('tournamentFilter').options[document.getElementById('tournamentFilter').selectedIndex]?.text || 'جميع البطولات';
 
-    // ─ Header ─
-    doc2.setFillColor(15,23,42);
-    doc2.rect(0,0,210,38,'F');
-    doc2.setFillColor(217,119,6);
-    doc2.rect(0,34,210,4,'F');
-
-    doc2.setTextColor(255,255,255);
-    doc2.setFontSize(18);
-    doc2.setFont('helvetica','bold');
-    doc2.text('تسجيل البطولات والاعبين', 105, 14, {align:'center'});
-
-    doc2.setFontSize(10);
-    doc2.setTextColor(203,213,225);
-    doc2.text('Jordan Taekwondo Federation - Player Registration System', 105, 22, {align:'center'});
-
-    doc2.setFontSize(9);
-    doc2.setTextColor(251,191,36);
-    doc2.text(`${club}  |  ${tName}  |  ${new Date().toLocaleDateString('ar-EG')}`, 105, 30, {align:'center'});
-
-    // ─ Table ─
-    // ترتيب: الفئة أولاً ثم الوزن تصاعدياً للقرعة
+    // ترتيب اللاعبين حسب الفئة ثم الوزن
     const catOrder = ["أطفال (6-8 سنوات)","أطفال (9-11 سنة)","أشبال (12-14 سنة)","زهرات (12-14 سنة)","ناشئين (15-17 سنة)","ناشئات (15-17 سنة)","رجال (+18)","سيدات (+18)"];
-    const sorted = [...filtered].sort((a,b) => {
+    const sorted = [...filtered].sort((a, b) => {
         const ci = catOrder.indexOf(a.category) - catOrder.indexOf(b.category);
-        if(ci !== 0) return ci;
-        const wa = parseFloat((a.weight||'0').replace(/[^0-9.]/g,''));
-        const wb = parseFloat((b.weight||'0').replace(/[^0-9.]/g,''));
+        if (ci !== 0) return ci;
+        const wa = parseFloat((a.weight || '0').replace(/[^0-9.]/g, ''));
+        const wb = parseFloat((b.weight || '0').replace(/[^0-9.]/g, ''));
         return wa - wb;
     });
 
-    // بناء الصفوف مع فاصل بين الفئات
-    const rows = [];
+    // بناء صفوف الجدول
+    let rowsHtml = '';
     let lastCat = null;
     let rowNum = 0;
+    
     sorted.forEach(p => {
-        if(p.category !== lastCat) {
-            // صف عنوان الفئة
-            rows.push([{ content: p.category, colSpan: 7, styles: { fillColor: [15,23,42], textColor: [251,191,36], fontStyle: 'bold', halign: 'center', fontSize: 9 }}]);
+        if (p.category !== lastCat) {
+            rowsHtml += `<tr><td colspan="7" style="background-color: #0f172a; color: #fbbf24; font-weight: bold; padding: 10px; font-size: 14px; text-align: center;">${p.category}</td></tr>`;
             lastCat = p.category;
             rowNum = 0;
         }
         rowNum++;
-        rows.push([
-            rowNum,
-            p.name,
-            p.category,
-            p.weight + ' كغم',
-            p.belt==='black' ? 'أسود' : 'ملون',
-            p.gender==='male' ? 'ذكر' : 'أنثى',
-            (p.fee || (p.belt==='black'?25:20)) + ' د.أ'
-        ]);
+        const beltText = p.belt === 'black' ? 'أسود' : 'ملون';
+        const genderText = p.gender === 'male' ? 'ذكر' : 'أنثى';
+        const fee = (p.fee || (p.belt === 'black' ? 25 : 20));
+
+        const bg = rowNum % 2 === 0 ? '#f8fafc' : '#ffffff';
+        rowsHtml += `
+            <tr style="background-color: ${bg}; border-bottom: 1px solid #e2e8f0; text-align: center;">
+                <td style="padding: 8px;">${rowNum}</td>
+                <td style="padding: 8px; font-weight: 900;">${p.name}</td>
+                <td style="padding: 8px;">${p.category}</td>
+                <td style="padding: 8px; direction: ltr;">${p.weight} كغم</td>
+                <td style="padding: 8px;">${beltText}</td>
+                <td style="padding: 8px;">${genderText}</td>
+                <td style="padding: 8px; color: #d97706; font-weight: bold;">${fee} د.أ</td>
+            </tr>
+        `;
     });
 
-    doc2.autoTable({
-        startY: 44,
-        head: [['#', 'اسم اللاعب', 'الفئة', 'الوزن', 'الحزام', 'الجنس', 'الرسوم']],
-        body: rows,
-        theme: 'grid',
-        headStyles: {
-            fillColor: [217,119,6],
-            textColor: [255,255,255],
-            fontStyle: 'bold',
-            fontSize: 9,
-            halign: 'center'
-        },
-        bodyStyles: { fontSize: 8, halign: 'center', cellPadding: 3 },
-        alternateRowStyles: { fillColor: [248,250,252] },
-        columnStyles: { 1: { halign:'right' }, 2: { halign:'right' } },
-        margin: { left:10, right:10 }
-    });
-
-    // ─ Footer summary ─
-    const finalY = doc2.lastAutoTable.finalY + 8;
-    let colorC=0,blackC=0,colorF=0,blackF=0;
+    // حساب الإجمالي
+    let colorC = 0, blackC = 0, colorF = 0, blackF = 0;
     filtered.forEach(p => {
-        const f = p.fee||(p.belt==='black'?25:20);
-        if(p.belt==='black'){blackC++;blackF+=f;}else{colorC++;colorF+=f;}
+        const f = p.fee || (p.belt === 'black' ? 25 : 20);
+        if (p.belt === 'black') { blackC++; blackF += f; } else { colorC++; colorF += f; }
     });
     const total = colorF + blackF;
 
-    doc2.setFillColor(248,250,252);
-    doc2.rect(10, finalY, 190, 28, 'F');
-    doc2.setDrawColor(217,119,6);
-    doc2.rect(10, finalY, 190, 28, 'S');
+    // إنشاء قالب HTML خفي للطباعة
+    const printContainer = document.createElement('div');
+    printContainer.style.width = '210mm'; // عرض ورقة A4
+    printContainer.style.padding = '20px';
+    printContainer.style.fontFamily = "'Cairo', sans-serif";
+    printContainer.style.direction = 'rtl';
+    printContainer.style.backgroundColor = '#ffffff';
+    printContainer.style.position = 'absolute';
+    printContainer.style.left = '-9999px'; // إخفاء العنصر عن الشاشة
 
-    doc2.setTextColor(15,23,42);
-    doc2.setFontSize(9);
-    doc2.setFont('helvetica','normal');
-    doc2.text(`Total Players: ${filtered.length}  |  Color Belt: ${colorC} × ${colorF} JD  |  Black Belt: ${blackC} × ${blackF} JD`, 105, finalY+10, {align:'center'});
-    doc2.setFontSize(12);
-    doc2.setFont('helvetica','bold');
-    doc2.setTextColor(217,119,6);
-    doc2.text(`Total Due: ${total} JD`, 105, finalY+21, {align:'center'});
+    printContainer.innerHTML = `
+        <div style="background-color: #0f172a; border-bottom: 5px solid #d97706; padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
+            <h1 style="margin: 0; font-size: 26px; font-weight: 900;">تسجيل البطولات والاعبين</h1>
+            <p style="margin: 5px 0 0 0; font-size: 14px; color: #cbd5e1;">Jordan Taekwondo Federation - Player Registration System</p>
+            <p style="margin: 10px 0 0 0; font-size: 13px; color: #fbbf24; font-weight: bold;">${club} &nbsp;|&nbsp; ${tName} &nbsp;|&nbsp; ${new Date().toLocaleDateString('ar-EG')}</p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 13px;">
+            <thead>
+                <tr style="background-color: #d97706; color: white;">
+                    <th style="padding: 10px; border: 1px solid #b45309;">#</th>
+                    <th style="padding: 10px; border: 1px solid #b45309;">اسم اللاعب</th>
+                    <th style="padding: 10px; border: 1px solid #b45309;">الفئة</th>
+                    <th style="padding: 10px; border: 1px solid #b45309;">الوزن</th>
+                    <th style="padding: 10px; border: 1px solid #b45309;">الحزام</th>
+                    <th style="padding: 10px; border: 1px solid #b45309;">الجنس</th>
+                    <th style="padding: 10px; border: 1px solid #b45309;">الرسوم</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rowsHtml}
+            </tbody>
+        </table>
 
-    // ─ Page number ─
-    doc2.setFontSize(8);
-    doc2.setTextColor(148,163,184);
-    doc2.text(`Generated: ${new Date().toLocaleString('en-GB')}`, 10, 290);
-    doc2.text('Page 1', 200, 290, {align:'right'});
+        <div style="margin-top: 30px; background-color: #f8fafc; border: 2px solid #d97706; border-radius: 10px; padding: 15px; text-align: center;">
+            <p style="margin: 0; font-size: 12px; color: #0f172a;">إجمالي اللاعبين: ${filtered.length} &nbsp;|&nbsp; حزام ملون: ${colorC} (${colorF} د.أ) &nbsp;|&nbsp; حزام أسود: ${blackC} (${blackF} د.أ)</p>
+            <h3 style="margin: 10px 0 0 0; color: #d97706; font-size: 18px; font-weight: 900;">المبلغ الإجمالي المطلوب: ${total} دينار أردني</h3>
+        </div>
+    `;
 
-    doc2.save(`${club}-roster-${new Date().toISOString().slice(0,10)}.pdf`);
+    document.body.appendChild(printContainer);
+
+    // إعدادات مكتبة html2pdf
+    const opt = {
+        margin:       5,
+        filename:     `${club}-كشف-${new Date().toISOString().slice(0,10)}.pdf`,
+        image:        { type: 'jpeg', quality: 1 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // إنشاء وحفظ الـ PDF
+    html2pdf().set(opt).from(printContainer).save().then(() => {
+        document.body.removeChild(printContainer);
+        pdfBtn.innerHTML = originalBtnHtml; // إعادة الزر لحالته
+        pdfBtn.disabled = false;
+    });
 };
 </script>
 
