@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كشف النادي | Taekwondo Reg</title>
+    <title>كشف النادي | تسجيل البطولات والاعبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -93,7 +93,7 @@
         <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mx-auto mb-3 shadow-lg">
             <i class="fas fa-fist-raised text-slate-900 text-lg"></i>
         </div>
-        <h1 class="text-lg font-black text-amber-400">Taekwondo Reg</h1>
+        <h1 class="text-lg font-black text-amber-400">تسجيل البطولات والاعبين</h1>
         <p id="displayClubName" class="text-xs mt-1" style="color:var(--sidebar-text)">جاري التحقق...</p>
     </div>
     <nav class="flex-1 p-4 space-y-1">
@@ -124,7 +124,7 @@
 <div id="mobileSidebar" class="fixed top-0 right-0 h-full w-72 z-50 flex flex-col shadow-2xl md:hidden border-l border-white/10">
     <div class="p-5 border-b border-white/10 flex justify-between items-center">
         <div>
-            <h1 class="text-lg font-black text-amber-400">Taekwondo Reg</h1>
+            <h1 class="text-lg font-black text-amber-400">تسجيل البطولات والاعبين</h1>
             <p id="mobileClubName" class="text-xs mt-0.5" style="color:var(--sidebar-text)">جاري التحقق...</p>
         </div>
         <button onclick="closeSidebar()" class="text-slate-400 hover:text-white p-2"><i class="fas fa-times text-xl"></i></button>
@@ -577,7 +577,7 @@ window.exportPDF = function() {
     doc2.setTextColor(255,255,255);
     doc2.setFontSize(18);
     doc2.setFont('helvetica','bold');
-    doc2.text('Taekwondo Reg', 105, 14, {align:'center'});
+    doc2.text('تسجيل البطولات والاعبين', 105, 14, {align:'center'});
 
     doc2.setFontSize(10);
     doc2.setTextColor(203,213,225);
