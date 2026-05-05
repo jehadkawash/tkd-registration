@@ -556,7 +556,7 @@ window.saveEdit = async function() {
         btn.disabled = false;
     }
 };
-/* ─── Export PDF (يدعم اللغة العربية 100%) ─── */
+/* ─── Export PDF (يدعم اللغة العربية 100% وبدون صفحات بيضاء) ─── */
 window.exportPDF = function() {
     // تغيير شكل الزر ليظهر للمستخدم أن التحميل قيد التنفيذ
     const pdfBtn = document.querySelector('.pdf-btn');
@@ -618,47 +618,45 @@ window.exportPDF = function() {
     });
     const total = colorF + blackF;
 
-    // إنشاء قالب HTML خفي للطباعة
+    // إنشاء العنصر الحاوي (بدون إضافته للشاشة لتجنب مشكلة الصفحة البيضاء)
     const printContainer = document.createElement('div');
-    printContainer.style.width = '210mm'; // عرض ورقة A4
-    printContainer.style.padding = '20px';
-    printContainer.style.fontFamily = "'Cairo', sans-serif";
-    printContainer.style.direction = 'rtl';
-    printContainer.style.backgroundColor = '#ffffff';
-    printContainer.style.position = 'absolute';
-    printContainer.style.left = '-9999px'; // إخفاء العنصر عن الشاشة
-
+    
+    // وضعنا التنسيقات والخطوط مباشرة داخل العنصر ليتعرف عليها محرك الـ PDF
     printContainer.innerHTML = `
-        <div style="background-color: #0f172a; border-bottom: 5px solid #d97706; padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
-            <h1 style="margin: 0; font-size: 26px; font-weight: 900;">تسجيل البطولات والاعبين</h1>
-            <p style="margin: 5px 0 0 0; font-size: 14px; color: #cbd5e1;">Jordan Taekwondo Federation - Player Registration System</p>
-            <p style="margin: 10px 0 0 0; font-size: 13px; color: #fbbf24; font-weight: bold;">${club} &nbsp;|&nbsp; ${tName} &nbsp;|&nbsp; ${new Date().toLocaleDateString('ar-EG')}</p>
-        </div>
-        
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 13px;">
-            <thead>
-                <tr style="background-color: #d97706; color: white;">
-                    <th style="padding: 10px; border: 1px solid #b45309;">#</th>
-                    <th style="padding: 10px; border: 1px solid #b45309;">اسم اللاعب</th>
-                    <th style="padding: 10px; border: 1px solid #b45309;">الفئة</th>
-                    <th style="padding: 10px; border: 1px solid #b45309;">الوزن</th>
-                    <th style="padding: 10px; border: 1px solid #b45309;">الحزام</th>
-                    <th style="padding: 10px; border: 1px solid #b45309;">الجنس</th>
-                    <th style="padding: 10px; border: 1px solid #b45309;">الرسوم</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${rowsHtml}
-            </tbody>
-        </table>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+            * { font-family: 'Cairo', sans-serif !important; }
+        </style>
+        <div style="width: 210mm; padding: 20px; background-color: #ffffff; direction: rtl;">
+            <div style="background-color: #0f172a; border-bottom: 5px solid #d97706; padding: 25px; text-align: center; color: white; border-radius: 10px 10px 0 0;">
+                <h1 style="margin: 0; font-size: 26px; font-weight: 900;">تسجيل البطولات والاعبين</h1>
+                <p style="margin: 5px 0 0 0; font-size: 14px; color: #cbd5e1;">Jordan Taekwondo Federation - Player Registration System</p>
+                <p style="margin: 10px 0 0 0; font-size: 13px; color: #fbbf24; font-weight: bold;">${club} &nbsp;|&nbsp; ${tName} &nbsp;|&nbsp; ${new Date().toLocaleDateString('ar-EG')}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; font-size: 13px;">
+                <thead>
+                    <tr style="background-color: #d97706; color: white;">
+                        <th style="padding: 10px; border: 1px solid #b45309;">#</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">اسم اللاعب</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">الفئة</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">الوزن</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">الحزام</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">الجنس</th>
+                        <th style="padding: 10px; border: 1px solid #b45309;">الرسوم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
 
-        <div style="margin-top: 30px; background-color: #f8fafc; border: 2px solid #d97706; border-radius: 10px; padding: 15px; text-align: center;">
-            <p style="margin: 0; font-size: 12px; color: #0f172a;">إجمالي اللاعبين: ${filtered.length} &nbsp;|&nbsp; حزام ملون: ${colorC} (${colorF} د.أ) &nbsp;|&nbsp; حزام أسود: ${blackC} (${blackF} د.أ)</p>
-            <h3 style="margin: 10px 0 0 0; color: #d97706; font-size: 18px; font-weight: 900;">المبلغ الإجمالي المطلوب: ${total} دينار أردني</h3>
+            <div style="margin-top: 30px; background-color: #f8fafc; border: 2px solid #d97706; border-radius: 10px; padding: 15px; text-align: center;">
+                <p style="margin: 0; font-size: 12px; color: #0f172a;">إجمالي اللاعبين: ${filtered.length} &nbsp;|&nbsp; حزام ملون: ${colorC} (${colorF} د.أ) &nbsp;|&nbsp; حزام أسود: ${blackC} (${blackF} د.أ)</p>
+                <h3 style="margin: 10px 0 0 0; color: #d97706; font-size: 18px; font-weight: 900;">المبلغ الإجمالي المطلوب: ${total} دينار أردني</h3>
+            </div>
         </div>
     `;
-
-    document.body.appendChild(printContainer);
 
     // إعدادات مكتبة html2pdf
     const opt = {
@@ -669,10 +667,9 @@ window.exportPDF = function() {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // إنشاء وحفظ الـ PDF
+    // إنشاء وحفظ الـ PDF فوراً من العنصر المخزن في الذاكرة
     html2pdf().set(opt).from(printContainer).save().then(() => {
-        document.body.removeChild(printContainer);
-        pdfBtn.innerHTML = originalBtnHtml; // إعادة الزر لحالته
+        pdfBtn.innerHTML = originalBtnHtml; // إعادة الزر لحالته الطبيعية
         pdfBtn.disabled = false;
     });
 };
