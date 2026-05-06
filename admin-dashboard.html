@@ -39,7 +39,8 @@
         .swal2-popup { font-family: 'Cairo', sans-serif !important; border-radius: 1.5rem !important; }
 
         /* ستايل الهويات المخفي */
-        #id-cards-container { position: absolute; left: -9999px; top: 0; width: 210mm; background: #fff; }
+        /* ستايل الهويات المخفي */
+#id-cards-container { position: absolute; top: 0; right: 0; width: 210mm; background: #fff; z-index: -9999; opacity: 0; pointer-events: none; overflow: visible; }
         .id-card { width: 85mm; height: 115mm; border: 2px solid #000; position: relative; background: #fff; color: #000; padding: 10px; box-sizing: border-box; text-align: center; display: inline-block; margin: 5px; border-radius: 10px; overflow: hidden; page-break-inside: avoid; }
         .id-header { background: #0f172a; color: #fff; padding: 5px; margin: -10px -10px 10px -10px; font-weight: bold; font-size: 14px;}
         .id-logo { height: 50px; width: auto; object-fit: contain; margin: 5px auto; }
@@ -924,10 +925,28 @@ window.exportCSV = async function(){
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `players-${new Date().toISOString().slice(0,10)}.csv`; a.click();
 };
 
-window.exportIDCards = async function() {
-    const playersToPrint = window.lastFilteredPlayers || [];
+window.exportIDCards = async function(singleId = null) {
+    // تحديد اللاعبين بناءً على الصفحة (تعمل للأدمن والكابتن)
+    let playersToPrint = [];
+    if (typeof window.lastFilteredPlayers !== 'undefined') {
+        // نحن في صفحة الأدمن
+        playersToPrint = window.lastFilteredPlayers || [];
+    } else {
+        // نحن في صفحة الكابتن
+        const tid = document.getElementById('tournamentFilter').value;
+        if (!tid && !singleId) {
+            Swal.fire('تنبيه', 'الرجاء اختيار بطولة من القائمة المنسدلة لطباعة هويات لاعبيها.', 'warning');
+            return;
+        }
+        if (singleId) {
+            playersToPrint = allPlayerDocs.filter(p => p.id === singleId);
+        } else {
+            playersToPrint = allPlayerDocs.filter(p => p.tournamentId === tid);
+        }
+    }
+
     if (playersToPrint.length === 0) {
-        Swal.fire('تنبيه', 'لا يوجد لاعبون لطباعة هوياتهم. قم بتطبيق الفلاتر أولاً.', 'info');
+        Swal.fire('تنبيه', 'لا يوجد لاعبون لطباعة هوياتهم.', 'info');
         return;
     }
 
@@ -936,17 +955,30 @@ window.exportIDCards = async function() {
     
     Swal.fire({ title: 'جاري تجهيز الهويات...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
+    // التمرير لأعلى الصفحة لضمان عمل html2canvas بكفاءة
+    window.scrollTo(0, 0);
+
     playersToPrint.forEach(p => {
         const tInfo = window.tournamentsMap[p.tournamentId] || {};
-        const logoSrc = tInfo.tournamentLogo || 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Taekwondo_pictogram.svg/1200px-Taekwondo_pictogram.svg.png'; // شعار افتراضي
+        const logoSrc = tInfo.tournamentLogo; 
         
+        // استخدام أيقونة افتراضية آمنة بدلاً من رابط خارجي لمنع مشكلة الورقة البيضاء (CORS)
+        const logoHtml = logoSrc 
+            ? `<img src="${logoSrc}" class="id-logo" onerror="this.style.display='none'">` 
+            : `<div style="height:50px; display:flex; align-items:center; justify-content:center; margin:5px auto;"><i class="fas fa-user-circle" style="font-size:30px; color:#d97706;"></i></div>`;
+        
+        // تحديد اسم النادي حسب الصفحة
+        const clubNameDisplay = typeof usersMap !== 'undefined' && usersMap[p.captainId] 
+            ? usersMap[p.captainId].clubName 
+            : (p.clubName || (typeof currentUserData !== 'undefined' ? currentUserData.clubName : '-'));
+
         const card = document.createElement('div');
         card.className = 'id-card';
         card.innerHTML = `
             <div class="id-header">${tInfo.name || 'بطولة التايكواندو'}</div>
-            <img src="${logoSrc}" class="id-logo" onerror="this.style.display='none'">
+            ${logoHtml}
             <div class="id-name">${p.name}</div>
-            <div class="id-club">${usersMap[p.captainId]?.clubName || p.clubName || '-'}</div>
+            <div class="id-club">${clubNameDisplay}</div>
             <div class="id-qr" id="qr-${p.id}"></div>
             <div class="id-details">
                 <div><b>الفئة:</b> ${p.category}</div>
@@ -958,25 +990,33 @@ window.exportIDCards = async function() {
         `;
         container.appendChild(card);
 
+        // إنشاء QR Code
         new QRCode(card.querySelector(`#qr-${p.id}`), {
             text: `https://tkd-registration.web.app/verify?pid=${p.id}`,
             width: 80, height: 80
         });
     });
 
+    // زيادة وقت الانتظار إلى ثانية كاملة لضمان رسم جميع الـ QR Codes
     setTimeout(() => {
         const opt = {
             margin: 5,
             filename: `ID-Cards-${new Date().getTime()}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true,
+                scrollY: 0,
+                windowY: 0
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
+
         html2pdf().set(opt).from(container).save().then(() => {
             container.innerHTML = '';
             Swal.close();
         });
-    }, 500);
+    }, 1000); 
 };
 
 /* ── Admins ── */
