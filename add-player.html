@@ -29,7 +29,7 @@
         .flash-success{animation:flashGreen 1s ease;}
         
         /* تخصيص خط SweetAlert ليطابق الموقع */
-        .swal2-popup { font-family: 'Cairo', sans-serif !important; }
+        .swal2-popup { font-family: 'Cairo', sans-serif !important; border-radius: 1.5rem !important;}
     </style>
 </head>
 <body class="flex min-h-screen">
@@ -221,7 +221,7 @@
                             ondrop="handleCertDrop(event)">
                             <i id="certIcon" class="fas fa-file-upload text-2xl mb-2 block" style="color:var(--text2)"></i>
                             <p class="text-xs font-bold t-sub">اضغط أو اسحب الملف هنا</p>
-                            <p class="text-[10px] t-sub mt-1">PDF أو صورة — حجم أقصى 5MB</p>
+                            <p class="text-[10px] t-sub mt-1">PDF أو صورة — (سيتم ضغط الصور تلقائياً)</p>
                         </div>
                         <input type="file" id="birthCertInput" accept="image/*,.pdf" class="hidden" onchange="previewCert(this)">
                         <div id="certPreview" class="hidden mt-2 flex items-center gap-2 p-2 rounded-lg surface2 border text-xs">
@@ -302,7 +302,6 @@ onAuthStateChanged(auth,async(user)=>{
     if(!user){window.location.href="index.html";return;}
     const snap=await getDoc(doc(db,"users",user.uid));
     if(!snap.exists()||!snap.data().approved){
-        // استخدام SweetAlert بدلاً من alert
         await Swal.fire({
             icon: 'warning',
             title: 'عذراً!',
@@ -322,7 +321,6 @@ onAuthStateChanged(auth,async(user)=>{
     loadRecentPlayers(user.uid);
 });
 
-// تأكيد تسجيل الخروج باستخدام SweetAlert
 async function doLogout(){ 
     const result = await Swal.fire({
         title: 'تسجيل الخروج؟',
@@ -350,14 +348,12 @@ async function loadTournaments(){
     const urlTid=new URLSearchParams(window.location.search).get('tid');
     sel.innerHTML='<option value="">-- اختر البطولة --</option>';
     let firstOpen=null;
-    // Check extension deadline for this captain
     const userSnap2=await getDoc(doc(db,"users",currentUser.uid));
     const extDeadlineStr=userSnap2.data()?.extensionDeadline;
     const extDeadline=extDeadlineStr?new Date(extDeadlineStr):null;
     snap.forEach(d=>{
         const t=d.data();
         const deadline=t.deadline?new Date(t.deadline):null;
-        // Allow if within main deadline OR within extension deadline
         const isOpen=(deadline&&now<deadline)||(extDeadline&&now<extDeadline);
         const opt=document.createElement('option');
         opt.value=d.id; opt.textContent=`${t.name} ${isOpen?'🟢':'🔴'}`;
@@ -378,7 +374,7 @@ async function loadTournaments(){
 function applyTournament(tid,opt){
     if(!tid||!opt){currentTournament=null;return;}
     currentTournament={id:tid,feeColor:+opt.dataset.feeColor||20,feeBlack:+opt.dataset.feeBlack||25,requireHeight:opt.dataset.reqHeight==='1',requireDob:opt.dataset.reqDob==='1',requireLevel:opt.dataset.reqLevel==='1'};
-    const hasExtra=currentTournament.requireHeight||currentTournament.requireDob||currentTournament.requireLevel;
+    const hasExtra=currentTournament.requireHeight||currentTournament.requireDob||currentTournament.requireLevel||currentTournament.requireBirthCert;
     document.getElementById('extraFields').classList.toggle('hidden',!hasExtra);
     document.getElementById('field-height').classList.toggle('hidden',!currentTournament.requireHeight);
     document.getElementById('field-dob').classList.toggle('hidden',!currentTournament.requireDob);
@@ -446,6 +442,74 @@ function checkDuplicate(){
 }
 document.getElementById('playerName').addEventListener('input',checkDuplicate);
 
+// دالة معاينة وإظهار اسم الشهادة المرفوعة
+window.previewCert = function(input) {
+    if (input.files && input.files[0]) {
+        document.getElementById('certFileName').textContent = input.files[0].name;
+        document.getElementById('certPreview').classList.remove('hidden');
+        document.getElementById('certDropArea').classList.add('hidden');
+    }
+};
+
+window.clearCert = function() {
+    document.getElementById('birthCertInput').value = "";
+    document.getElementById('certFileName').textContent = "";
+    document.getElementById('certPreview').classList.add('hidden');
+    document.getElementById('certDropArea').classList.remove('hidden');
+};
+
+window.handleCertDrop = function(e) {
+    e.preventDefault();
+    document.getElementById('certDropArea').style.borderColor = 'var(--border)';
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        document.getElementById('birthCertInput').files = e.dataTransfer.files;
+        previewCert(document.getElementById('birthCertInput'));
+    }
+};
+
+// ==========================================
+// دالة ضغط الصور (Image Compression)
+// ==========================================
+const compressImage = (file, maxWidth = 800, maxHeight = 800, quality = 0.7) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                // حساب الأبعاد الجديدة مع الحفاظ على النسبة
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height *= maxWidth / width));
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width *= maxHeight / height));
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // إخراج الصورة بصيغة jpeg بحجم مضغوط
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                resolve(dataUrl);
+            };
+            img.onerror = (error) => reject(error);
+        };
+        reader.onerror = (error) => reject(error);
+    });
+};
+
 document.getElementById('saveBtn').addEventListener('click',async()=>{
     const name=document.getElementById('playerName').value.trim();
     const year=document.getElementById('birthYear').value.trim();
@@ -456,7 +520,6 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
     const tid=document.getElementById('tournamentSelect').value;
     const exactWeight=document.getElementById('exactWeight').value.trim();
     
-    // استبدال الـ alerts بـ SweetAlert
     if(!tid){
         Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء اختيار بطولة!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
         return;
@@ -494,6 +557,12 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
         Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء اختيار المستوى!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
         return;
     }
+    
+    // التحقق من رفع الشهادة إذا كانت مطلوبة
+    if (currentTournament?.requireBirthCert && !document.getElementById('birthCertInput').files[0]) {
+        Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء إرفاق شهادة الميلاد لللاعب!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
+        return;
+    }
 
     const btn=document.getElementById('saveBtn');
     btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التسجيل...'; btn.disabled=true;
@@ -509,26 +578,39 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
             createdAt:serverTimestamp(),
             exactWeight: parsedExactWeight
         };
+        
         if(currentTournament?.requireHeight) data.height=parseInt(document.getElementById('playerHeight').value)||null;
         if(currentTournament?.requireDob)    data.dob=document.getElementById('playerDob').value||null;
         if(currentTournament?.requireLevel)  data.level=document.getElementById('playerLevel').value||null;
-        // رفع شهادة الميلاد كـ base64
+        
+        // رفع وضغط شهادة الميلاد
         if(currentTournament?.requireBirthCert){
             const certFile=document.getElementById('birthCertInput').files[0];
             if(certFile){
-                const base64=await new Promise((res,rej)=>{
-                    const r=new FileReader();
-                    r.onload=e=>res(e.target.result);
-                    r.onerror=rej;
-                    r.readAsDataURL(certFile);
-                });
+                let base64 = "";
+                // فحص نوع الملف، إذا كان صورة نضغطه، إذا كان PDF نحفظه كما هو ولكن نحدده بحجم 2 ميجا
+                if (certFile.type.startsWith('image/')) {
+                    base64 = await compressImage(certFile, 1000, 1000, 0.7);
+                } else {
+                    if (certFile.size > 2 * 1024 * 1024) {
+                        throw new Error("عذراً، حجم ملف الـ PDF يجب ألا يتجاوز 2 ميجابايت.");
+                    }
+                    base64 = await new Promise((res,rej)=>{
+                        const r=new FileReader();
+                        r.onload=e=>res(e.target.result);
+                        r.onerror=rej;
+                        r.readAsDataURL(certFile);
+                    });
+                }
                 data.birthCertBase64=base64;
                 data.birthCertName=certFile.name;
             }
         }
+        
         const ref=await addDoc(collection(db,"players"),data);
         existingPlayers.push({id:ref.id,...data});
-        // reset
+        
+        // مسح الحقول
         ['playerName','birthYear','playerHeight','playerDob','exactWeight'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
         ['gender','belt','playerLevel'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
         document.getElementById('categoryDisplay').innerHTML='<span class="opacity-50">تُحسب تلقائياً</span>';
@@ -536,8 +618,8 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
         document.getElementById('weight').innerHTML='<option>أدخل السنة والجنس أولاً</option>';
         document.getElementById('weight').disabled=true; document.getElementById('weight').classList.add('opacity-60');
         hideFee(); document.getElementById('dupAlert').classList.add('hidden'); document.getElementById('dupAlert').classList.remove('flex');
+        clearCert();
         
-        // إظهار رسالة النجاح المنبثقة بدلاً من وميض الشاشة
         Swal.fire({
             icon: 'success',
             title: 'تم التسجيل!',

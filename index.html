@@ -6,12 +6,13 @@
     <title>تسجيل الدخول | تسجيل البطولات والاعبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- مكتبة SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         :root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--accent:#d97706;}
         body{font-family:'Cairo',sans-serif;background:var(--bg);min-height:100vh;}
         
-        /* -- التعديل 3: تحسين وضوح مربعات الإدخال -- */
         input {
             background: #1e293b; 
             border-color: #475569; 
@@ -31,9 +32,13 @@
 
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
         .float{animation:float 4s ease-in-out infinite;}
+        
         /* forgot modal */
         #forgotModal{display:none;}
         #forgotModal.open{display:flex;}
+
+        /* تخصيص SweetAlert ليتناسب مع هوية الموقع */
+        .swal2-popup { font-family: 'Cairo', sans-serif !important; border-radius: 1.5rem !important; }
     </style>
 </head>
 <body class="flex min-h-screen">
@@ -87,7 +92,7 @@
     <div class="flex items-center justify-center w-full lg:w-auto lg:min-w-[440px] p-5">
         <div class="w-full max-w-md">
 
-            <!-- التعديل 1: Logo موبايل (متوسط ومرتب لعدم كسر الشاشة) -->
+            <!-- Logo موبايل -->
             <div class="flex flex-col items-center justify-center gap-3 mb-8 lg:hidden text-center">
                 <div class="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
                     <i class="fas fa-fist-raised text-slate-900 text-2xl"></i>
@@ -135,9 +140,6 @@
                         </button>
                     </form>
 
-                    <!-- Alert -->
-                    <div id="alertBox" class="hidden mt-4 p-3 rounded-xl text-xs font-bold text-center"></div>
-
                     <div class="mt-6 pt-5 border-t text-center" style="border-color:var(--border)">
                         <p class="text-slate-400 text-sm">
                             ليس لديك حساب؟
@@ -166,8 +168,7 @@
                     <i class="fas fa-envelope absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
                     <input type="email" id="forgotEmail" class="w-full pr-10 p-3 border rounded-xl text-sm" placeholder="example@club.com">
                 </div>
-                <div id="forgotAlert" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
-                <button id="forgotBtn" onclick="sendReset()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+                <button id="forgotBtn" onclick="sendReset()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm mt-2">
                     <i class="fas fa-paper-plane"></i> إرسال الرابط
                 </button>
             </div>
@@ -178,12 +179,6 @@
 import { auth, db } from './firebase-config.js';
 import { signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore.js";
-
-function showAlert(msg, type='error'){
-    const box=document.getElementById('alertBox');
-    box.className=`mt-4 p-3 rounded-xl text-xs font-bold text-center ${type==='success'?'bg-green-900/50 text-green-300 border border-green-700':'bg-red-900/50 text-red-300 border border-red-700'}`;
-    box.textContent=msg; box.classList.remove('hidden');
-}
 
 /* toggle password visibility */
 window.togglePass = ()=>{
@@ -200,43 +195,66 @@ document.getElementById('loginForm').addEventListener('submit', async(e)=>{
     const password=document.getElementById('password').value;
     const btn=document.getElementById('loginBtn');
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-    document.getElementById('alertBox').classList.add('hidden');
+    
     try{
         const cred=await signInWithEmailAndPassword(auth,email,password);
         const snap=await getDoc(doc(db,"users",cred.user.uid));
-        if(!snap.exists()){ await signOut(auth); showAlert("❌ هذا الحساب غير مسجل في النظام"); return; }
+        
+        if(!snap.exists()){ 
+            await signOut(auth); 
+            Swal.fire({ icon: 'error', title: 'خطأ', text: 'هذا الحساب غير مسجل في النظام', confirmButtonColor: '#dc2626' });
+            return; 
+        }
+        
         const data=snap.data();
-        if(!data.approved){ await signOut(auth); showAlert("⏳ حسابك قيد المراجعة من قبل المنظم","warning"); return; }
+        if(!data.approved){ 
+            await signOut(auth); 
+            Swal.fire({ icon: 'warning', title: 'قيد المراجعة', text: 'حسابك ما زال بانتظار موافقة المنظم.', confirmButtonColor: '#d97706' });
+            return; 
+        }
+        
         if(data.role==='super_admin') window.location.href="admin-dashboard.html";
         else window.location.href="dashboard.html";
+        
     }catch(err){
-        const msgs={'auth/invalid-credential':'❌ البريد أو كلمة المرور غير صحيحة','auth/too-many-requests':'⚠️ تجاوزت عدد المحاولات، حاول لاحقاً','auth/user-not-found':'❌ لا يوجد حساب بهذا البريد'};
-        showAlert(msgs[err.code]||'❌ '+err.message);
-    }finally{ btn.disabled=false; btn.innerHTML='<i class="fas fa-sign-in-alt"></i> تسجيل الدخول'; }
+        const msgs={'auth/invalid-credential':'البريد الإلكتروني أو كلمة المرور غير صحيحة', 'auth/too-many-requests':'تجاوزت عدد المحاولات، حاول لاحقاً', 'auth/user-not-found':'لا يوجد حساب بهذا البريد'};
+        Swal.fire({ icon: 'error', title: 'فشل الدخول', text: msgs[err.code] || err.message, confirmButtonColor: '#dc2626' });
+    }finally{ 
+        btn.disabled=false; 
+        btn.innerHTML='<i class="fas fa-sign-in-alt"></i> تسجيل الدخول'; 
+    }
 });
 
 /* Forgot Password */
-window.openForgot  = ()=>{ document.getElementById('forgotModal').classList.add('open'); document.getElementById('forgotAlert').classList.add('hidden'); document.getElementById('forgotEmail').value=''; };
+window.openForgot  = ()=>{ document.getElementById('forgotModal').classList.add('open'); document.getElementById('forgotEmail').value=''; };
 window.closeForgot = ()=>{ document.getElementById('forgotModal').classList.remove('open'); };
 
 window.sendReset = async()=>{
     const email=document.getElementById('forgotEmail').value.trim();
-    const alertDiv=document.getElementById('forgotAlert');
-    if(!email){ alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700'; alertDiv.textContent='الرجاء إدخال البريد الإلكتروني'; alertDiv.classList.remove('hidden'); return; }
+    if(!email){ 
+        Swal.fire({ icon: 'warning', text: 'الرجاء إدخال البريد الإلكتروني', confirmButtonColor: '#d97706' });
+        return; 
+    }
+    
     const btn=document.getElementById('forgotBtn');
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+    
     try{
         await sendPasswordResetEmail(auth,email);
-        alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-green-900/50 text-green-300 border border-green-700';
-        // التعديل 2: تنبيه المستخدم لمجلد السبام
-        alertDiv.textContent='✅ تم إرسال الرابط. تحقق من بريدك (ومجلد الرسائل المزعجة Spam).';
-        alertDiv.classList.remove('hidden');
-        setTimeout(closeForgot,4000);
+        closeForgot();
+        Swal.fire({ 
+            icon: 'success', 
+            title: 'تم الإرسال', 
+            text: 'تم إرسال رابط استعادة كلمة المرور. يرجى التحقق من صندوق الوارد (ومجلد الرسائل المزعجة Spam).',
+            confirmButtonColor: '#16a34a' 
+        });
     }catch(err){
-        alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700';
-        alertDiv.textContent=err.code==='auth/user-not-found'?'❌ لا يوجد حساب بهذا البريد':'❌ '+err.message;
-        alertDiv.classList.remove('hidden');
-    }finally{ btn.disabled=false; btn.innerHTML='<i class="fas fa-paper-plane"></i> إرسال الرابط'; }
+        const msg = err.code === 'auth/user-not-found' ? 'لا يوجد حساب مسجل بهذا البريد.' : err.message;
+        Swal.fire({ icon: 'error', title: 'خطأ', text: msg, confirmButtonColor: '#dc2626' });
+    }finally{ 
+        btn.disabled=false; 
+        btn.innerHTML='<i class="fas fa-paper-plane"></i> إرسال الرابط'; 
+    }
 };
 </script>
 

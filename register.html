@@ -6,6 +6,8 @@
     <title>إنشاء حساب | تسجيل البطولات والاعبين</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- مكتبة SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
         :root{--bg:#0f172a;--surface:#1e293b;--border:#334155;--text:#f1f5f9;--text2:#94a3b8;--accent:#d97706;}
@@ -23,11 +25,13 @@
 
         /* password strength */
         .strength-bar{height:4px;border-radius:2px;transition:width .3s,background .3s;}
+
+        /* تخصيص SweetAlert ليتناسب مع هوية الموقع */
+        .swal2-popup { font-family: 'Cairo', sans-serif !important; border-radius: 1.5rem !important; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    
     <!-- Dark mode toggle -->
     <button onclick="toggleDarkReg()" class="fixed top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition" style="background:rgba(255,255,255,0.1);backdrop-filter:blur(10px)">
         <i id="regDarkIcon" class="fas fa-moon text-amber-400 text-sm"></i>
@@ -151,8 +155,6 @@
                     </div>
                 </div>
 
-                <div id="step2Alert" class="hidden p-3 rounded-xl text-xs font-bold text-center"></div>
-
                 <button onclick="goStep3()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3.5 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
                     التالي <i class="fas fa-arrow-left"></i>
                 </button>
@@ -190,11 +192,8 @@
                     <i class="fas fa-info-circle text-amber-500 flex-shrink-0 mt-0.5"></i>
                     <p class="text-slate-300 text-xs leading-relaxed">
                         بعد إنشاء الحساب، يجب أن يوافق المنظم على طلبك قبل أن تتمكن من تسجيل الدخول.
-                        قد يستغرق ذلك بعض الوقت.
                     </p>
                 </div>
-
-                <div id="registerAlert" class="hidden p-3 rounded-xl text-xs font-bold text-center mb-4"></div>
 
                 <button id="registerBtn" onclick="registerUser()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-black py-3.5 rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
                     <i class="fas fa-user-plus"></i> إنشاء الحساب
@@ -257,7 +256,10 @@ window.goStep2 = ()=>{
     const club=document.getElementById('clubName').value.trim();
     const cap=document.getElementById('captainName').value.trim();
     const phone=document.getElementById('phone').value.trim();
-    if(!club||!cap||!phone){ alert("الرجاء تعبئة كافة الحقول!"); return; }
+    if(!club||!cap||!phone){ 
+        Swal.fire({ icon: 'warning', title: 'بيانات ناقصة', text: 'الرجاء تعبئة كافة الحقول!', confirmButtonColor: '#d97706' }); 
+        return; 
+    }
     document.getElementById('step1').classList.add('hidden');
     document.getElementById('step2').classList.remove('hidden');
     document.getElementById('step3').classList.add('hidden');
@@ -267,11 +269,20 @@ window.goStep3 = ()=>{
     const email=document.getElementById('email').value.trim();
     const pass=document.getElementById('password').value;
     const confirm=document.getElementById('confirmPassword').value;
-    const alertDiv=document.getElementById('step2Alert');
-    alertDiv.classList.add('hidden');
-    if(!email||!pass){ alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700'; alertDiv.textContent='الرجاء تعبئة كافة الحقول!'; alertDiv.classList.remove('hidden'); return; }
-    if(pass.length<6){ alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700'; alertDiv.textContent='كلمة المرور يجب أن تكون 6 أحرف على الأقل!'; alertDiv.classList.remove('hidden'); return; }
-    if(pass!==confirm){ alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700'; alertDiv.textContent='كلمتا المرور غير متطابقتين!'; alertDiv.classList.remove('hidden'); return; }
+    
+    if(!email||!pass){ 
+        Swal.fire({ icon: 'warning', text: 'الرجاء إدخال البريد الإلكتروني وكلمة المرور!', confirmButtonColor: '#d97706' }); 
+        return; 
+    }
+    if(pass.length<6){ 
+        Swal.fire({ icon: 'warning', text: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل!', confirmButtonColor: '#d97706' }); 
+        return; 
+    }
+    if(pass!==confirm){ 
+        Swal.fire({ icon: 'error', text: 'كلمتا المرور غير متطابقتين!', confirmButtonColor: '#dc2626' }); 
+        return; 
+    }
+    
     // fill review
     document.getElementById('review-club').textContent=document.getElementById('clubName').value.trim();
     document.getElementById('review-captain').textContent=document.getElementById('captainName').value.trim();
@@ -290,10 +301,10 @@ window.registerUser = async()=>{
     const phone=document.getElementById('phone').value.trim();
     const email=document.getElementById('email').value.trim();
     const password=document.getElementById('password').value;
+    
     const btn=document.getElementById('registerBtn');
-    const alertDiv=document.getElementById('registerAlert');
     btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
-    alertDiv.classList.add('hidden');
+    
     try{
         const cred=await createUserWithEmailAndPassword(auth,email,password);
         await setDoc(doc(db,"users",cred.user.uid),{
@@ -302,15 +313,21 @@ window.registerUser = async()=>{
             createdAt:serverTimestamp()
         });
         await signOut(auth);
-        alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-green-900/50 text-green-300 border border-green-700';
-        alertDiv.textContent='✅ تم إنشاء الحساب! بانتظار موافقة المنظم. سيتم توجيهك...';
-        alertDiv.classList.remove('hidden');
-        btn.innerHTML='<i class="fas fa-check-circle"></i> تم الإنشاء بنجاح!';
-        setTimeout(()=>window.location.href='index.html',3000);
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'تم الإنشاء بنجاح! 🎉',
+            text: 'حسابك الآن قيد المراجعة. سيتم توجيهك لصفحة تسجيل الدخول...',
+            timer: 4000,
+            showConfirmButton: false,
+            allowOutsideClick: false
+        }).then(() => {
+            window.location.href='index.html';
+        });
+
     }catch(e){
-        alertDiv.className='p-3 rounded-xl text-xs font-bold text-center bg-red-900/50 text-red-300 border border-red-700';
-        alertDiv.textContent=e.code==='auth/email-already-in-use'?'❌ هذا البريد مستخدم مسبقاً':'❌ '+e.message;
-        alertDiv.classList.remove('hidden');
+        const msg = e.code==='auth/email-already-in-use' ? 'هذا البريد مستخدم مسبقاً في النظام' : e.message;
+        Swal.fire({ icon: 'error', title: 'فشل الإنشاء', text: msg, confirmButtonColor: '#dc2626' });
         btn.disabled=false; btn.innerHTML='<i class="fas fa-user-plus"></i> إنشاء الحساب';
     }
 };
