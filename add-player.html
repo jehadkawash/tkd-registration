@@ -297,6 +297,7 @@ function calcCategory(year,gender){
 }
 
 let currentUser=null,currentUserData=null,currentTournament=null,existingPlayers=[];
+window.tournamentsMap = {}; // حفظ بيانات البطولات لحساب الوقت الحقيقي
 
 onAuthStateChanged(auth,async(user)=>{
     if(!user){window.location.href="index.html";return;}
@@ -348,13 +349,27 @@ async function loadTournaments(){
     const urlTid=new URLSearchParams(window.location.search).get('tid');
     sel.innerHTML='<option value="">-- اختر البطولة --</option>';
     let firstOpen=null;
+    
     const userSnap2=await getDoc(doc(db,"users",currentUser.uid));
     const extDeadlineStr=userSnap2.data()?.extensionDeadline;
     const extDeadline=extDeadlineStr?new Date(extDeadlineStr):null;
+    
+    window.tournamentsMap = {}; 
+
     snap.forEach(d=>{
         const t=d.data();
+        window.tournamentsMap[d.id] = t; 
+        
         const deadline=t.deadline?new Date(t.deadline):null;
-        const isOpen=(deadline&&now<deadline)||(extDeadline&&now<extDeadline);
+        
+        let finalDeadline = deadline;
+        if (extDeadline && deadline && extDeadline > deadline) {
+            finalDeadline = extDeadline;
+        } else if (extDeadline && !deadline) {
+            finalDeadline = extDeadline;
+        }
+
+        const isOpen=(finalDeadline&&now<finalDeadline);
         const opt=document.createElement('option');
         opt.value=d.id; opt.textContent=`${t.name} ${isOpen?'🟢':'🔴'}`;
         opt.disabled=!isOpen;
@@ -524,6 +539,35 @@ document.getElementById('saveBtn').addEventListener('click',async()=>{
         Swal.fire({ icon: 'error', title: 'تنبيه', text: 'الرجاء اختيار بطولة!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
         return;
     }
+
+    // --- 🚨 القفل الحديدي للوقت 🚨 ---
+    const tInfo = window.tournamentsMap[tid];
+    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+    const extDeadlineStr = userSnap.data()?.extensionDeadline;
+    
+    const now = new Date();
+    const mainDeadline = tInfo.deadline ? new Date(tInfo.deadline) : null;
+    const extDeadline = extDeadlineStr ? new Date(extDeadlineStr) : null;
+    
+    let finalDeadline = mainDeadline;
+    if (extDeadline && mainDeadline && extDeadline > mainDeadline) {
+        finalDeadline = extDeadline;
+    } else if (extDeadline && !mainDeadline) {
+        finalDeadline = extDeadline;
+    }
+
+    if (finalDeadline && now > finalDeadline) {
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'انتهى الوقت!', 
+            text: 'عذراً، لقد انتهى وقت التسجيل لهذه البطولة تماماً.', 
+            confirmButtonColor: '#dc2626', 
+            confirmButtonText: 'إغلاق' 
+        });
+        return; // نوقف عملية التسجيل فوراً
+    }
+    // ------------------------------------
+
     if(!name||!year||!gender||!belt||!weight){
         Swal.fire({ icon: 'error', title: 'حقول ناقصة', text: 'الرجاء تعبئة كافة الحقول الأساسية!', confirmButtonColor: '#d97706', confirmButtonText: 'حسناً' });
         return;
